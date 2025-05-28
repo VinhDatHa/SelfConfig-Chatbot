@@ -1,0 +1,314 @@
+package io.curri.dictionary.chatbot.presentation.chat_page
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.ChevronDown
+import com.composables.icons.lucide.History
+import com.composables.icons.lucide.ListTree
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Menu
+import com.composables.icons.lucide.MessageCirclePlus
+import com.composables.icons.lucide.Settings
+import io.curri.dictionary.chatbot.components.chat.ChatInput
+import io.curri.dictionary.chatbot.components.chat.ChatMessage
+import io.curri.dictionary.chatbot.components.chat.ModelSelector
+import io.curri.dictionary.chatbot.components.chat.rememberChatInputState
+import io.curri.dictionary.chatbot.components.ui.Conversation
+import io.curri.dictionary.chatbot.data.models.ModelFromProvider
+import io.curri.dictionary.chatbot.data.models.ModelType
+import io.curri.dictionary.chatbot.data.models.UIMessage
+import io.curri.dictionary.chatbot.utils.MockData
+import kotlinx.coroutines.launch
+
+@Composable
+internal fun ChatPage(id: String) {
+	val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+	val conversation: Conversation = MockData.mockConversation
+
+
+	ModalNavigationDrawer(
+		drawerState = drawerState,
+		drawerContent = {
+			// ToDo Drawer content here
+			DrawerContent(
+				current = Conversation.empty(),
+				conversations = emptyList(),
+				false
+			)
+		}
+	) {
+		val inputState = rememberChatInputState()
+		Scaffold(
+			topBar = {
+				TopBar(
+					conversation,
+					drawerState,
+					onClickMenu = {
+
+					},
+					onNewChat = {
+
+					}
+				)
+			},
+			bottomBar = {
+				ChatInput(
+					state = inputState,
+					enableSearch = false,
+					onToggleSearch = {
+
+					},
+					onCancelClick = {
+						// ToDo Cancel click
+					},
+					onSendClick = {
+						// ToDo handle model chat is not null
+						if (inputState.isEditing()) {
+							//ToDo handling message edit
+						} else {
+							//ToDo send message
+						}
+						inputState.clearInput()
+					},
+					onImageDelete = {
+						// ToDo image delete later
+					},
+					actions = {
+						Box(Modifier.weight(1f)) {
+							// ToDo select model view
+							ModelSelector(
+								modelId = "setting.chatModelId",
+//								providers = setting.providers,
+								onSelect = {
+									println("Select clicked: ${it.displayName}")
+//									vm.setChatModel(it)
+								},
+								type = ModelType.CHAT
+							)
+						}
+					}
+				)
+			}
+		) { innerPadding ->
+			ChatList(
+				innerPadding,
+				conversation = conversation,
+				loading = false,
+				model = ModelFromProvider(),
+				onEdit = {
+
+				},
+				onRegenerate = {
+
+				}
+			)
+		}
+	}
+}
+
+@Composable
+internal fun ChatList(
+	innerPaddingValues: PaddingValues,
+	conversation: Conversation,
+	loading: Boolean,
+	model: ModelFromProvider,
+	onRegenerate: (UIMessage) -> Unit = {},
+	onEdit: (UIMessage) -> Unit = {}
+) {
+	val state = rememberLazyListState()
+	val scope = rememberCoroutineScope()
+
+	val scrollToBottom = { state.requestScrollToItem(0) }
+
+	Box(modifier = Modifier.padding(innerPaddingValues)) {
+		LazyColumn(
+			state = state,
+			contentPadding = PaddingValues(16.dp),
+			verticalArrangement = Arrangement.spacedBy(8.dp),
+			reverseLayout = true
+		) {
+			item(ScrollBottomKey) {
+				Spacer(modifier = Modifier.fillMaxWidth().height(5.dp))
+			}
+
+			if (loading) {
+				item(LoadingIndicatorKey) {
+					// ToDo wavy circular progress indicator
+				}
+			}
+
+			items(
+				items = conversation.messages.reversed(),
+				key = { it.id }
+			) { message ->
+				ChatMessage(
+					message = message,
+					onRegenerate = {
+						onRegenerate(message)
+					},
+					onEdit = {
+						onEdit(message)
+					}
+				)
+			}
+		}
+		AnimatedVisibility(
+			state.canScrollBackward,
+			modifier = Modifier.align(Alignment.BottomCenter)
+		) {
+			Surface(
+				shape = RoundedCornerShape(50),
+				modifier = Modifier.padding(8.dp),
+				onClick = {
+					scrollToBottom()
+				},
+				border = BorderStroke(
+					width = 1.dp,
+					MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+				)
+			) {
+				Row(
+					modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
+					horizontalArrangement = Arrangement.spacedBy(4.dp),
+					verticalAlignment = Alignment.CenterVertically
+				) {
+					Icon(
+						Lucide.ChevronDown,
+						contentDescription = "Scroll to bottom",
+						modifier = Modifier.size(16.dp)
+					)
+					Text("Scroll to bottom", style = MaterialTheme.typography.bodySmall)
+				}
+			}
+		}
+	}
+}
+
+private const val LoadingIndicatorKey = "LoadingIndicator"
+private const val ScrollBottomKey = "ScrollBottomKey"
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TopBar(
+	conversation: Conversation,
+	drawerState: DrawerState,
+	onClickMenu: () -> Unit,
+	onNewChat: () -> Unit
+) {
+	val scope = rememberCoroutineScope()
+
+	TopAppBar(
+		navigationIcon = {
+			IconButton(
+				onClick = {
+					scope.launch { drawerState.open() }
+				}
+			) {
+				Icon(Lucide.ListTree, "Messages")
+			}
+		},
+		title = {
+			Text(
+				text = conversation.title.ifBlank { "New chat" },
+				maxLines = 1,
+				fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+				overflow = TextOverflow.Ellipsis
+			)
+		}, actions = {
+			IconButton(
+				onClick = {
+					onClickMenu()
+				}
+			) {
+				Icon(Lucide.Menu, "Menu")
+			}
+
+			IconButton(
+				onClick = {
+					onNewChat()
+				}
+			) {
+				Icon(Lucide.MessageCirclePlus, "New Message")
+			}
+		}
+	)
+}
+
+@Composable
+private fun DrawerContent(
+	current: Conversation,
+	conversations: List<Conversation> = emptyList(),
+	loading: Boolean
+) {
+	ModalDrawerSheet(
+		modifier = Modifier.width(270.dp)
+	) {
+		Column(
+			modifier = Modifier.padding(8.dp),
+			verticalArrangement = Arrangement.spacedBy(8.dp)
+		) {
+			// ToDo card to check update available
+			Spacer(
+				modifier = Modifier.weight(0.8f).background(MaterialTheme.colorScheme.surfaceDim)
+			)
+			Row(
+				modifier = Modifier.fillMaxWidth()
+			) {
+				TextButton(
+					onClick = {
+						// ToDo open history
+					},
+					modifier = Modifier.weight(1f)
+				) {
+					Icon(Lucide.History, "Chat history")
+					Text("History", modifier = Modifier.padding(start = 4.dp))
+				}
+				TextButton(
+					onClick = {
+						// ToDo open setting
+					},
+					modifier = Modifier.weight(1f)
+				) {
+					Icon(Lucide.Settings, "Settings")
+					Text("Settings", modifier = Modifier.padding(start = 4.dp))
+				}
+			}
+		}
+	}
+}
