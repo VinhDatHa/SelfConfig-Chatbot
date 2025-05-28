@@ -57,10 +57,13 @@ import io.curri.dictionary.chatbot.utils.MockData
 import kotlinx.coroutines.launch
 
 @Composable
-internal fun ChatPage(id: String) {
+internal fun ChatPage(
+	id: String,
+	onOpenSetting: () -> Unit,
+	onOpenNewChat: () -> Unit
+) {
 	val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 	val conversation: Conversation = MockData.mockConversation
-
 
 	ModalNavigationDrawer(
 		drawerState = drawerState,
@@ -69,6 +72,7 @@ internal fun ChatPage(id: String) {
 			DrawerContent(
 				current = Conversation.empty(),
 				conversations = emptyList(),
+				{ onOpenSetting() },
 				false
 			)
 		}
@@ -80,10 +84,10 @@ internal fun ChatPage(id: String) {
 					conversation,
 					drawerState,
 					onClickMenu = {
-
+						// Menu
 					},
 					onNewChat = {
-
+						onOpenNewChat()
 					}
 				)
 			},
@@ -274,6 +278,7 @@ private fun TopBar(
 private fun DrawerContent(
 	current: Conversation,
 	conversations: List<Conversation> = emptyList(),
+	openSetting: () -> Unit,
 	loading: Boolean
 ) {
 	ModalDrawerSheet(
@@ -301,7 +306,7 @@ private fun DrawerContent(
 				}
 				TextButton(
 					onClick = {
-						// ToDo open setting
+						openSetting()
 					},
 					modifier = Modifier.weight(1f)
 				) {

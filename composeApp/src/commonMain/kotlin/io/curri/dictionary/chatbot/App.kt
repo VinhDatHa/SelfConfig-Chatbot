@@ -33,6 +33,7 @@ import io.curri.dictionary.chatbot.components.ui.context.LocalSharedTransitionSc
 import io.curri.dictionary.chatbot.presentation.chat_page.ChatPage
 import io.curri.dictionary.chatbot.presentation.conversation_list.ListConversationScreen
 import io.curri.dictionary.chatbot.presentation.settings.SettingsScreen
+import io.curri.dictionary.chatbot.utils.newChat
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.uuid.ExperimentalUuidApi
@@ -106,7 +107,11 @@ private fun AppRoute(navHostController: NavHostController) {
 					popExitTransition = { popExitTransition }
 				) {
 					val id = it.toRoute<Screen.ChatPage>().id
-					ChatPage(id)
+					ChatPage(id, onOpenSetting = {
+						navHostController.navigate(Screen.SettingsScreen)
+					}, onOpenNewChat = {
+						navHostController.newChat(Uuid.random().toString())
+					})
 				}
 
 				composable<Screen.SettingsScreen> {
