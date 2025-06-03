@@ -19,7 +19,7 @@ import kotlin.uuid.Uuid
 object MockData {
 	@OptIn(ExperimentalTime::class)
 	val mockConversation = Conversation(
-		id = "123123",
+		id = Uuid.random().toString(),
 		title = "AI Assistant Demo Chat",
 		messages = listOf(
 			UIMessage(

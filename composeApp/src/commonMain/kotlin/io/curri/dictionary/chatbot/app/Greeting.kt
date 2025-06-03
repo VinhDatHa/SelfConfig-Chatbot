@@ -1,4 +1,4 @@
-package io.curri.dictionary.chatbot
+package io.curri.dictionary.chatbot.app
 
 class Greeting {
 	private val platform = getPlatform()

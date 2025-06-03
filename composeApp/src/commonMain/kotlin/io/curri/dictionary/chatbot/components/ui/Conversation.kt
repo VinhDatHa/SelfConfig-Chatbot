@@ -15,10 +15,8 @@ import kotlinx.serialization.encoding.Encoder
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
-import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-@OptIn(ExperimentalUuidApi::class)
 data class Conversation(
 	val id: String = Uuid.random().toString(),
 	val title: String = "",

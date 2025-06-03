@@ -1,4 +1,4 @@
-package io.curri.dictionary.chatbot
+package io.curri.dictionary.chatbot.app
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -30,39 +30,42 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import io.curri.dictionary.chatbot.components.ui.context.LocalNavController
 import io.curri.dictionary.chatbot.components.ui.context.LocalSharedTransitionScope
+import io.curri.dictionary.chatbot.di.dataSourceModule
+import io.curri.dictionary.chatbot.di.networkModule
+import io.curri.dictionary.chatbot.di.viewModelModule
 import io.curri.dictionary.chatbot.presentation.chat_page.ChatPage
 import io.curri.dictionary.chatbot.presentation.conversation_list.ListConversationScreen
 import io.curri.dictionary.chatbot.presentation.settings.SettingsScreen
 import io.curri.dictionary.chatbot.utils.newChat
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.KoinApplication
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @Composable
 @Preview
 fun App() {
-	MaterialTheme {
-		var showContent by remember { mutableStateOf(false) }
-		var navController = rememberNavController()
-		Column(
-			modifier = Modifier
-				.safeContentPadding()
-				.fillMaxSize(),
-			horizontalAlignment = Alignment.CenterHorizontally,
-		) {
-			Button(onClick = { showContent = !showContent }) {
-				Text("Click me!")
-			}
-			AnimatedVisibility(showContent) {
-				val greeting = remember { Greeting().greet() }
-//                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-//                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-//                    Text("Compose: $greeting")
-//                    ChatPage("Test")
-//                }
-//				ChatPage("Test")
-				AppRoute(navController)
+	KoinApplication(
+		application = {
+			modules(viewModelModule, dataSourceModule, networkModule)
+		}
+	) {
+		MaterialTheme {
+			var showContent by remember { mutableStateOf(false) }
+			var navController = rememberNavController()
+			Column(
+				modifier = Modifier
+					.safeContentPadding()
+					.fillMaxSize(),
+				horizontalAlignment = Alignment.CenterHorizontally,
+			) {
+				Button(onClick = { showContent = !showContent }) {
+					Text("Click me!")
+				}
+				AnimatedVisibility(showContent) {
+					AppRoute(navController)
+				}
 			}
 		}
 	}
@@ -107,11 +110,12 @@ private fun AppRoute(navHostController: NavHostController) {
 					popExitTransition = { popExitTransition }
 				) {
 					val id = it.toRoute<Screen.ChatPage>().id
-					ChatPage(id, onOpenSetting = {
-						navHostController.navigate(Screen.SettingsScreen)
-					}, onOpenNewChat = {
-						navHostController.newChat(Uuid.random().toString())
-					})
+					ChatPage(id = id,
+						onOpenSetting = {
+							navHostController.navigate(Screen.SettingsScreen)
+						}, onOpenNewChat = {
+							navHostController.newChat(Uuid.random().toString())
+						})
 				}
 
 				composable<Screen.SettingsScreen> {

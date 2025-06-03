@@ -7,5 +7,4 @@ struct iOSApp: App {
             ContentView()
         }
     }
-
 }

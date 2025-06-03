@@ -42,7 +42,7 @@ sealed class ProviderSetting {
 
 	@Serializable
 	@SerialName("google")
-	data class Google(
+	data class GoogleProvider(
 		override var id: String = "Google",
 		override var enabled: Boolean = true,
 		override var name: String = "Google",
@@ -66,7 +66,7 @@ sealed class ProviderSetting {
 		val Types by lazy {
 			listOf(
 				TogetherAiProvider::class,
-				Google::class
+				GoogleProvider::class
 			)
 		}
 	}

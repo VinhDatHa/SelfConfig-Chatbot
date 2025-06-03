@@ -33,11 +33,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.History
 import com.composables.icons.lucide.ListTree
@@ -53,27 +55,33 @@ import io.curri.dictionary.chatbot.components.ui.Conversation
 import io.curri.dictionary.chatbot.data.models.ModelFromProvider
 import io.curri.dictionary.chatbot.data.models.ModelType
 import io.curri.dictionary.chatbot.data.models.UIMessage
-import io.curri.dictionary.chatbot.utils.MockData
 import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 internal fun ChatPage(
 	id: String,
+	viewModel: ChatVM = koinViewModel(),
 	onOpenSetting: () -> Unit,
 	onOpenNewChat: () -> Unit
 ) {
 	val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-	val conversation: Conversation = MockData.mockConversation
+//	val conversation: Conversation = MockData.mockConversation
+
+//	val conversations by viewModel.conversations.collectAsStateWithLifecycle()
+	val conversation by viewModel.conversation.collectAsStateWithLifecycle()
+	val loadingJob by viewModel.conversationJob.collectAsStateWithLifecycle()
+
 
 	ModalNavigationDrawer(
 		drawerState = drawerState,
 		drawerContent = {
 			// ToDo Drawer content here
 			DrawerContent(
-				current = Conversation.empty(),
+				current = conversation,
 				conversations = emptyList(),
 				{ onOpenSetting() },
-				false
+				loading = loadingJob != null
 			)
 		}
 	) {
@@ -96,18 +104,24 @@ internal fun ChatPage(
 					state = inputState,
 					enableSearch = false,
 					onToggleSearch = {
-
+						// ToDo toggle search
 					},
 					onCancelClick = {
-						// ToDo Cancel click
+						loadingJob?.cancel()
 					},
 					onSendClick = {
 						// ToDo handle model chat is not null
 						if (inputState.isEditing()) {
 							//ToDo handling message edit
+							viewModel.handleMessageEdit(
+								parts = inputState.messageContent,
+								uuid = inputState.editingMessage ?: return@ChatInput
+							)
 						} else {
 							//ToDo send message
+							viewModel.handleMessageSend(inputState.messageContent)
 						}
+
 						inputState.clearInput()
 					},
 					onImageDelete = {

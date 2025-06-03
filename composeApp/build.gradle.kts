@@ -7,7 +7,7 @@ plugins {
 	alias(libs.plugins.androidApplication)
 	alias(libs.plugins.composeMultiplatform)
 	alias(libs.plugins.composeCompiler)
-//	alias(libs.plugins.composeHotReload)
+	alias(libs.plugins.composeHotReload)
 	alias(libs.plugins.kotlin.serialization)
 	alias(libs.plugins.ksp)
 
@@ -39,6 +39,8 @@ kotlin {
 			languageSettings {
 				optIn("androidx.compose.material3.ExperimentalMaterial3Api")
 				optIn("org.jetbrains.compose.resources.ExperimentalResourceApi")
+				optIn("kotlin.uuid.ExperimentalUuidApi")
+				optIn("kotlin.time.ExperimentalTime")
 			}
 		}
 		val desktopMain by getting
@@ -48,6 +50,8 @@ kotlin {
 			implementation(libs.androidx.activity.compose)
 			implementation(libs.androidx.constraintlayout)
 			implementation(libs.ktor.client.okhttp)
+			implementation(libs.koin.android)
+			implementation(libs.koin.androidx.compose)
 		}
 		commonMain.dependencies {
 			implementation(compose.runtime)
@@ -60,11 +64,14 @@ kotlin {
 			implementation(libs.androidx.lifecycle.runtimeCompose)
 			implementation(libs.androidx.lifecycle.viewmodel)
 			implementation(libs.androidx.lifecycle.runtimeCompose)
+			implementation(libs.kotlinx.coroutineCore)
 			implementation(libs.lucide.icons)
 			implementation(libs.kotlinx.serialization.json)
 			implementation(libs.bundles.ktor)
 			implementation(libs.bundles.coil)
 			implementation(libs.compose.navigation)
+			api(libs.koin.core)
+			implementation(libs.kotlinx.collections.immutable)
 		}
 		appleMain.dependencies {
 			implementation(libs.ktor.client.darwin)

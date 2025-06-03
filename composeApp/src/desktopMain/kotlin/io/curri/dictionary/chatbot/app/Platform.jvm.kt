@@ -1,4 +1,4 @@
-package io.curri.dictionary.chatbot
+package io.curri.dictionary.chatbot.app
 
 class JVMPlatform: Platform {
     override val name: String = "Java ${System.getProperty("java.version")}"
