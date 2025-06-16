@@ -29,13 +29,6 @@ class GenerationHandler {
 		maxSteps: Int = 5,
 	): Flow<List<UIMessage>> = flow {
 		var messages: List<UIMessage> = messages
-		val mockProvider = ProviderSetting.TogetherAiProvider(
-			id = "together_ai",
-			name = "Together",
-			baseUrl = "https://api.together.xyz/v1",
-			apiKey = "mock_free_api_key",
-			models = MockData.mockListModel
-		) as ProviderSetting
 		val provider = model.findProvider(settings.providers) ?: error("Provider not found")
 		val providerImpl = ProviderManager.getProviderByType(provider)
 		generateInternal(
@@ -47,7 +40,7 @@ class GenerationHandler {
 			},
 			transformers,
 			model = model,
-			provider = mockProvider,
+			provider = provider,
 			providerImpl = providerImpl,
 //				toolsInternal,
 //				memories?.invoke() ?: emptyList(),

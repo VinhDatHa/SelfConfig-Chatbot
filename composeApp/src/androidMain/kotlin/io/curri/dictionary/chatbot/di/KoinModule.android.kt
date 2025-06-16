@@ -14,7 +14,3 @@ actual val platformModule: Module
 	}
 
 actual fun createHttpClientEngine(): HttpClientEngine = OkHttp.create()
-
-//actual fun createDataStore(): DataStore<Preferences> {
-//	return DataStoreFactory.getDataStore()
-//}

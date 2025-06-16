@@ -73,7 +73,9 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 
 
 	override suspend fun generateText(
-		providerSetting: ProviderSetting.TogetherAiProvider, messages: List<UIMessage>, params: TextGenerationParams
+		providerSetting: ProviderSetting.TogetherAiProvider,
+		messages: List<UIMessage>,
+		params: TextGenerationParams
 	): MessageChunk {
 		return withContext(Dispatchers.IO) {
 			val requestBody = buildChatCompletionRequest(
@@ -84,6 +86,7 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 				url("${providerSetting.baseUrl}/chat/completions")
 				headers {
 					appendIfNameAbsent(HttpHeaders.ContentType, "application/json")
+					println("Provider key: ${providerSetting.apiKey}")
 					bearerAuth(providerSetting.apiKey)
 				}
 				println("Request body: $requestBody")

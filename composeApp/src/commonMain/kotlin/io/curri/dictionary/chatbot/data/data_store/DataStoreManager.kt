@@ -44,7 +44,6 @@ class DataStoreManager(
 			}
 		}
 		.map { preferences ->
-			println("Check pref: ${preferences[SELECT_MODEL]}")
 			Settings(
 				chatModelId = preferences[SELECT_MODEL] ?: "${Uuid.random()}",
 				titleModelId = preferences[TITLE_MODEL] ?: "${Uuid.random()}",

@@ -10,7 +10,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
 	name = DATA_STORE_NAME,
 	produceMigrations = { context ->
 		listOf(
-			SharedPreferencesMigration(context, DATA_STORE_NAME),
+			SharedPreferencesMigration(context, DATA_STORE_NAME)
 		)
 	}
 )
