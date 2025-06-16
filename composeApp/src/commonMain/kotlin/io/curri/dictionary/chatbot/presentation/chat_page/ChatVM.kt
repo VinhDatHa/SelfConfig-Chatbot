@@ -4,18 +4,25 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.curri.dictionary.chatbot.components.ui.Conversation
+import io.curri.dictionary.chatbot.data.data_store.DataStoreManager
+import io.curri.dictionary.chatbot.data.data_store.Settings
+import io.curri.dictionary.chatbot.data.data_store.findModelById
 import io.curri.dictionary.chatbot.data.models.MessageRole
+import io.curri.dictionary.chatbot.data.models.ModelFromProvider
 import io.curri.dictionary.chatbot.data.models.UIMessage
 import io.curri.dictionary.chatbot.data.models.UIMessagePart
 import io.curri.dictionary.chatbot.data.models.isEmptyMessage
 import io.curri.dictionary.chatbot.providers.GenerationHandler
 import io.curri.dictionary.chatbot.utils.MockData
-import io.ktor.http.ContentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
@@ -23,11 +30,12 @@ import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
 class ChatVM(
-	private val savedStateHandle: SavedStateHandle,
-	private val generationHandler: GenerationHandler
+	savedStateHandle: SavedStateHandle,
+	private val dataStore: DataStoreManager,
+	private val generationHandler: GenerationHandler,
 ) : ViewModel() {
 
-	private val _conversationID: String = Uuid.parse(checkNotNull(savedStateHandle["id"])).toString()
+	private val _conversationID: String = Uuid.parse(checkNotNull(savedStateHandle["id"] ?: "${Uuid.random()}")).toString()
 
 	private val _conversation = MutableStateFlow(Conversation.ofId(_conversationID))
 	val conversation = _conversation.asStateFlow()
@@ -35,12 +43,12 @@ class ChatVM(
 	private val _conversationJob = MutableStateFlow<Job?>(null)
 	val conversationJob = _conversationJob.asStateFlow()
 
-	init {
-		viewModelScope.launch {
-			// ToDo load conversation from local repo
-		}
-	}
+	val settings: StateFlow<Settings> = dataStore.settingsFlow
+		.stateIn(viewModelScope, SharingStarted.Lazily, Settings())
 
+	val currentModelChat = dataStore.settingsFlow.map {
+		it.providers.findModelById(it.chatModelId)
+	}.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
 	fun handleMessageSend(content: List<UIMessagePart>) {
 		if (content.isEmptyMessage()) return
@@ -73,7 +81,17 @@ class ChatVM(
 		}
 	}
 
-	fun handleMessageEdit(uuid: String,parts: List<UIMessagePart>) {
+	fun setChatModel(modelFromProvider: ModelFromProvider) {
+		viewModelScope.launch {
+			dataStore.update(
+				settings.value.copy(
+					chatModelId = modelFromProvider.modelId
+				)
+			)
+		}
+	}
+
+	fun handleMessageEdit(uuid: String, parts: List<UIMessagePart>) {
 		if (parts.isEmptyMessage()) return
 		_conversation.updateAndGet { conversation ->
 			conversation.copy(
@@ -98,6 +116,7 @@ class ChatVM(
 		val model = MockData.mockListModel.first()
 		runCatching {
 			generationHandler.streamText(
+				settings.value,
 				model = model,
 				messages = _conversation.value.messages
 			).collect {

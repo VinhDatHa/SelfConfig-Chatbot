@@ -23,11 +23,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
 import io.curri.dictionary.chatbot.components.ui.AutoAIIcon
+import io.curri.dictionary.chatbot.data.data_store.findModelById
 import io.curri.dictionary.chatbot.data.models.ModelFromProvider
 import io.curri.dictionary.chatbot.data.models.ModelType
 import io.curri.dictionary.chatbot.data.models.providers.ProviderSetting
@@ -39,13 +42,13 @@ import io.curri.dictionary.chatbot.utils.MockData
 @Composable
 fun ModelSelector(
 	modifier: Modifier = Modifier,
-	// ToDo
-//	providers: List<ProviderSetting> = listOf(ProviderSetting.TogetherAiProvider, ProviderSetting.Google),
+	providers: List<ProviderSetting>,
 	modelId: String,
-	type: ModelType,
+	type: ModelType = ModelType.CHAT,
 	onSelect: (ModelFromProvider) -> Unit = {}
 ) {
 
+	val models = providers.findModelById(modelId)
 	var popup by remember { mutableStateOf(false) }
 	val mockModel = MockData.mockModelProvider
 	TextButton(
@@ -54,12 +57,17 @@ fun ModelSelector(
 		},
 		modifier = modifier
 	) {
-		modelId.takeIf { it.isNotBlank() }?.let {
-			// ToDo AutoAI Icon
-
+		(models)?.let {
+			println("name: from Model List $it")
+			AutoAIIcon(
+				name = it.displayName,
+				modifier = Modifier
+					.padding(end = 4.dp)
+					.size(24.dp)
+			)
 		}
 		Text(
-			text = mockModel.displayName ?: "Select Model",
+			text = models?.displayName ?: "Select Model",
 			maxLines = 1,
 			overflow = TextOverflow.Ellipsis,
 			style = MaterialTheme.typography.bodySmall
@@ -70,18 +78,18 @@ fun ModelSelector(
 		ModalBottomSheet(
 			onDismissRequest = {
 				popup = false
-			}, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+			},
+			sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 		) {
 			Column(
 				modifier = Modifier.padding(8.dp),
 				verticalArrangement = Arrangement.spacedBy(4.dp)
 			) {
-				//                val filteredModels = providers.fastFilter {
-				//                    it.enabled && it.models.fastAny { model -> model.type == type }
-				//                }
-//				val filteredModels = listOf(ProviderSetting.TogetherAiProvider.Companion, ProviderSetting.Google.Companion)
+				val filteredModels = providers.fastFilter {
+					it.enabled && it.models.fastAny { model -> model.type == type }
+				}
 				ModelList(
-					providers = emptyList(),
+					providers = filteredModels,
 					modelType = type
 				) {
 					popup = false
@@ -107,32 +115,32 @@ internal fun ModelList(
 			item {
 				Text(
 					"No AI provider available, please add one in settings",
-					style = MaterialTheme.typography.bodyMedium,
+					style = MaterialTheme.typography.titleMedium,
+					fontWeight = FontWeight.Normal,
 					color = MaterialTheme.extendColors.gray6,
 					modifier = Modifier.padding(8.dp)
 				)
 			}
-			MockData.mockListModel.let { provider ->
-				stickyHeader {
-					Text(
-						text = "Together model",
-						style = MaterialTheme.typography.labelMedium,
-						color = MaterialTheme.colorScheme.primary,
-						modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
-					)
-				}
-				items(
-					items = provider,
-					key = { it.modelId }
-				) { model ->
-					ModelItem(
-						model = model,
-						onSelect = onSelect,
-					)
-				}
-			}
+//			MockData.mockListModel.let { provider ->
+//				stickyHeader {
+//					Text(
+//						text = "Together model",
+//						style = MaterialTheme.typography.labelMedium,
+//						color = MaterialTheme.colorScheme.primary,
+//						modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
+//					)
+//				}
+//				items(
+//					items = provider,
+//					key = { it.modelId }
+//				) { model ->
+//					ModelItem(
+//						model = model,
+//						onSelect = onSelect,
+//					)
+//				}
+//			}
 		}
-
 
 		providers.fastForEach { provider ->
 			stickyHeader {

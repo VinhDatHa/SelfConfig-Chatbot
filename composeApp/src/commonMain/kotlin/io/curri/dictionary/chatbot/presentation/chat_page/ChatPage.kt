@@ -33,6 +33,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -55,6 +56,7 @@ import io.curri.dictionary.chatbot.components.ui.Conversation
 import io.curri.dictionary.chatbot.data.models.ModelFromProvider
 import io.curri.dictionary.chatbot.data.models.ModelType
 import io.curri.dictionary.chatbot.data.models.UIMessage
+import io.curri.dictionary.chatbot.utils.MockData
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -67,11 +69,11 @@ internal fun ChatPage(
 ) {
 	val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 //	val conversation: Conversation = MockData.mockConversation
-
 //	val conversations by viewModel.conversations.collectAsStateWithLifecycle()
 	val conversation by viewModel.conversation.collectAsStateWithLifecycle()
 	val loadingJob by viewModel.conversationJob.collectAsStateWithLifecycle()
-
+	val settings by viewModel.settings.collectAsStateWithLifecycle()
+	val chatModel by viewModel.currentModelChat.collectAsStateWithLifecycle()
 
 	ModalNavigationDrawer(
 		drawerState = drawerState,
@@ -131,11 +133,10 @@ internal fun ChatPage(
 						Box(Modifier.weight(1f)) {
 							// ToDo select model view
 							ModelSelector(
-								modelId = "setting.chatModelId",
-//								providers = setting.providers,
+								modelId = settings.chatModelId,
+								providers = settings.providers,
 								onSelect = {
-									println("Select clicked: ${it.displayName}")
-//									vm.setChatModel(it)
+									viewModel.setChatModel(it)
 								},
 								type = ModelType.CHAT
 							)
@@ -145,10 +146,10 @@ internal fun ChatPage(
 			}
 		) { innerPadding ->
 			ChatList(
-				innerPadding,
+				innerPaddingValues = innerPadding,
 				conversation = conversation,
 				loading = false,
-				model = ModelFromProvider(),
+				model = chatModel ?: MockData.mockModelProvider,
 				onEdit = {
 
 				},

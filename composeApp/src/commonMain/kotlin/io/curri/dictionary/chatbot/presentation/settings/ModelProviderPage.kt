@@ -1,1 +1,0 @@
-package io.curri.dictionary.chatbot.presentation.settings

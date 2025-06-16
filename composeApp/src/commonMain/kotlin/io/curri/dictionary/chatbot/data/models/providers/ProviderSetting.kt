@@ -48,6 +48,7 @@ sealed class ProviderSetting {
 		override var name: String = "Google",
 		override var models: List<ModelFromProvider> = emptyList(),
 		var apiKey: String = "",
+		var baseUrl: String = "",
 	) : ProviderSetting() {
 		override fun addModel(model: ModelFromProvider): ProviderSetting {
 			return copy(models = models + model)

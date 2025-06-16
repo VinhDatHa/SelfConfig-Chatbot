@@ -1,5 +1,6 @@
 package io.curri.dictionary.chatbot.components.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -14,13 +15,27 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
+import dictionarychatbot.composeapp.generated.resources.Res
+import dictionarychatbot.composeapp.generated.resources.ic_claude_color
+import dictionarychatbot.composeapp.generated.resources.ic_deepseek
+import dictionarychatbot.composeapp.generated.resources.ic_gemini
+import dictionarychatbot.composeapp.generated.resources.ic_gemma_color
+import dictionarychatbot.composeapp.generated.resources.ic_meta
+import dictionarychatbot.composeapp.generated.resources.ic_mistral
+import dictionarychatbot.composeapp.generated.resources.ic_openrouter
+import dictionarychatbot.composeapp.generated.resources.ic_qwen
+import dictionarychatbot.composeapp.generated.resources.together_color
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun AutoAIIcon(
 	name: String,
 	modifier: Modifier = Modifier,
 ) {
-	val path = remember(name) { computeAIIconByName(name) } ?: run {
+	val path = remember(name) {
+		computeAIIconByName(name)
+
+	} ?: run {
 		TextAvatar(name, modifier)
 		return
 	}
@@ -30,6 +45,7 @@ fun AutoAIIcon(
 		modifier = modifier,
 	)
 }
+
 @Composable
 fun AIIcon(
 	path: String,
@@ -38,10 +54,32 @@ fun AIIcon(
 ) {
 	val contentColor = LocalPlatformContext.current
 	val context = LocalPlatformContext.current
-	val model = remember(path, contentColor, context) {
-		ImageRequest.Builder(context)
-			.data("file:///android_asset/icons/$path.svg")
-			// ToDo fill color
+	val modelIconResources = when (path.trimIndent()) {
+		"gemini-color" -> Res.drawable.ic_gemini
+		"claude-color" -> Res.drawable.ic_claude_color
+		"deepseek-color" -> Res.drawable.ic_deepseek
+		"qwen-color" -> Res.drawable.ic_qwen
+		"openrouter" -> Res.drawable.ic_openrouter
+		"mistral-color" -> Res.drawable.ic_mistral
+		"meta-color", "meta" -> Res.drawable.ic_meta
+		"gemma-color" -> Res.drawable.ic_gemma_color
+		"togetherai" -> Res.drawable.together_color
+		else -> null
+	}
+
+	if (modelIconResources != null) {
+		Image(
+			painter = painterResource(modelIconResources),
+			contentDescription = name,
+			modifier = modifier
+				.clip(CircleShape)
+				.size(24.dp),
+		)
+	} else {
+		val model = remember(path, contentColor, context) {
+			ImageRequest.Builder(context)
+				.data("file:///android_asset/icons/$path.svg")
+				// ToDo fill color
 //			.css(
 //				"""
 //                svg {
@@ -49,15 +87,16 @@ fun AIIcon(
 //                }
 //            """.trimIndent()
 //			)
-			.build()
+				.build()
+		}
+		AsyncImage(
+			model = model,
+			contentDescription = name,
+			modifier = modifier
+				.clip(CircleShape)
+				.size(24.dp),
+		)
 	}
-	AsyncImage(
-		model = model,
-		contentDescription = name,
-		modifier = modifier
-			.clip(CircleShape)
-			.size(24.dp),
-	)
 }
 
 
@@ -79,13 +118,14 @@ private fun computeAIIconByName(name: String): String? {
 		PATTERN_OPENROUTER.containsMatchIn(lowerName) -> "openrouter"
 		PATTERN_ZHIPU.containsMatchIn(lowerName) -> "zhipu-color"
 		PATTERN_MISTRAL.containsMatchIn(lowerName) -> "mistral-color"
-		PATTERN_META.containsMatchIn(lowerName) -> "meta-color"
+		PATTERN_META.containsMatchIn(lowerName) -> "meta"
 		PATTERN_HUNYUAN.containsMatchIn(lowerName) -> "hunyuan-color"
 		PATTERN_GEMMA.containsMatchIn(lowerName) -> "gemma-color"
 		PATTERN_PERPLEXITY.containsMatchIn(lowerName) -> "perplexity-color"
 		PATTERN_ALIYUN.containsMatchIn(lowerName) -> "alibabacloud-color"
 		PATTERN_BYTEDANCE.containsMatchIn(lowerName) -> "bytedance-color"
 		PATTERN_SILLICON_CLOUD.containsMatchIn(lowerName) -> "siliconcloud-color"
+		PATTERN_TOGETHER_AI.containsMatchIn(lowerName) -> "togetherai"
 		else -> null
 	}
 
@@ -116,6 +156,7 @@ private val PATTERN_PERPLEXITY = Regex("perplexity")
 private val PATTERN_BYTEDANCE = Regex("bytedance|火山")
 private val PATTERN_ALIYUN = Regex("aliyun|阿里云|百炼")
 private val PATTERN_SILLICON_CLOUD = Regex("硅基")
+private val PATTERN_TOGETHER_AI = Regex("togetherai")
 
 @Composable
 operator fun PaddingValues.plus(other: PaddingValues): PaddingValues {

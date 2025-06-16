@@ -1,6 +1,5 @@
 package io.curri.dictionary.chatbot.app
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.core.tween
@@ -11,16 +10,10 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -30,42 +23,31 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import io.curri.dictionary.chatbot.components.ui.context.LocalNavController
 import io.curri.dictionary.chatbot.components.ui.context.LocalSharedTransitionScope
-import io.curri.dictionary.chatbot.di.dataSourceModule
-import io.curri.dictionary.chatbot.di.networkModule
-import io.curri.dictionary.chatbot.di.viewModelModule
 import io.curri.dictionary.chatbot.presentation.chat_page.ChatPage
 import io.curri.dictionary.chatbot.presentation.conversation_list.ListConversationScreen
 import io.curri.dictionary.chatbot.presentation.settings.SettingsScreen
+import io.curri.dictionary.chatbot.presentation.settings.providers_page.SettingsProvider
+import io.curri.dictionary.chatbot.theme.AppTheme
 import io.curri.dictionary.chatbot.utils.newChat
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import org.koin.compose.KoinApplication
+import org.koin.compose.KoinContext
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @Composable
 @Preview
 fun App() {
-	KoinApplication(
-		application = {
-			modules(viewModelModule, dataSourceModule, networkModule)
-		}
-	) {
-		MaterialTheme {
-			var showContent by remember { mutableStateOf(false) }
-			var navController = rememberNavController()
+	KoinContext {
+		AppTheme {
+			val navController = rememberNavController()
 			Column(
 				modifier = Modifier
-					.safeContentPadding()
-					.fillMaxSize(),
+					.systemBarsPadding()
+					.fillMaxSize().background(MaterialTheme.colorScheme.background),
 				horizontalAlignment = Alignment.CenterHorizontally,
 			) {
-				Button(onClick = { showContent = !showContent }) {
-					Text("Click me!")
-				}
-				AnimatedVisibility(showContent) {
-					AppRoute(navController)
-				}
+				AppRoute(navController)
 			}
 		}
 	}
@@ -119,13 +101,23 @@ private fun AppRoute(navHostController: NavHostController) {
 				}
 
 				composable<Screen.SettingsScreen> {
-					SettingsScreen {
-						navHostController.navigate(Screen.ChatPage("TOOL"))
-					}
+					SettingsScreen(
+						onBackAction = {
+//						navHostController.navigate(Screen.ChatPage("TOOL"))
+							navHostController.popBackStack()
+						},
+						navController = navHostController
+					)
 				}
 				composable<Screen.HomeScreen> {
 					ListConversationScreen {
 						navHostController.navigate(Screen.ChatPage(it.id))
+					}
+				}
+
+				composable<Screen.ProviderConfigPage> {
+					SettingsProvider() {
+						navHostController.popBackStack()
 					}
 				}
 			}
@@ -138,13 +130,14 @@ private fun AppRoute(navHostController: NavHostController) {
 @Serializable
 sealed interface Screen {
 	@Serializable
-	data class ChatPage(val id: String) : Screen {
-
-	}
+	data class ChatPage(val id: String) : Screen
 
 	@Serializable
 	data object SettingsScreen : Screen
 
 	@Serializable
 	data object HomeScreen : Screen
+
+	@Serializable
+	data object ProviderConfigPage : Screen
 }

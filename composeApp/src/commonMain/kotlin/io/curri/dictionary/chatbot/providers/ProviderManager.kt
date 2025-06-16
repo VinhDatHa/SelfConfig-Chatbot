@@ -2,6 +2,7 @@ package io.curri.dictionary.chatbot.providers
 
 import io.curri.dictionary.chatbot.data.models.providers.ProviderSetting
 import io.curri.dictionary.chatbot.providers.together.TogetherAiProvider
+import kotlin.reflect.KClass
 
 object ProviderManager {
 	private val providers = mutableMapOf<String, Provider<*>>()
@@ -42,8 +43,12 @@ object ProviderManager {
 		@Suppress("UNCHECKED_CAST")
 		return when (setting) {
 			is ProviderSetting.TogetherAiProvider -> getProvider("togetherai")
-//			is ProviderSetting.GoogleProvider -> getProvider("google")
-			else -> {}
+			is ProviderSetting.GoogleProvider -> getProvider("google")
+			else -> throw IllegalArgumentException("Provider not found")
 		} as Provider<T>
+	}
+
+	fun findProviderType(selected: KClass<*>): KClass<out ProviderSetting>? {
+		return ProviderSetting.Types.find { it == selected }
 	}
 }

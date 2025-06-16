@@ -52,6 +52,7 @@ kotlin {
 			implementation(libs.ktor.client.okhttp)
 			implementation(libs.koin.android)
 			implementation(libs.koin.androidx.compose)
+			implementation(libs.androidx.datastore)
 		}
 		commonMain.dependencies {
 			implementation(compose.runtime)
@@ -72,6 +73,9 @@ kotlin {
 			implementation(libs.compose.navigation)
 			api(libs.koin.core)
 			implementation(libs.kotlinx.collections.immutable)
+			implementation(libs.androidx.datastore.preferences)
+			implementation(libs.androidx.datastore)
+			implementation(libs.kotlinx.reflect)
 		}
 		appleMain.dependencies {
 			implementation(libs.ktor.client.darwin)
@@ -84,6 +88,8 @@ kotlin {
 			implementation(compose.desktop.currentOs)
 			implementation(libs.kotlinx.coroutinesSwing)
 			implementation(libs.ktor.client.okhttp)
+			implementation(libs.androidx.datastore.core)
+			implementation(libs.androidx.datastore.preferences.core)
 		}
 		nativeMain.dependencies {
 			implementation(libs.ktor.client.darwin)

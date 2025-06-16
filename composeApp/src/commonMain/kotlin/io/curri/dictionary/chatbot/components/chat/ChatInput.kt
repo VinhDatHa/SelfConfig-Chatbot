@@ -55,9 +55,7 @@ import dictionarychatbot.composeapp.generated.resources.stop
 import io.curri.dictionary.chatbot.data.models.UIMessagePart
 import io.curri.dictionary.chatbot.data.models.isEmptyMessage
 import org.jetbrains.compose.resources.stringResource
-import kotlin.uuid.ExperimentalUuidApi
 
-@OptIn(ExperimentalUuidApi::class)
 class ChatInputState {
 	var messageContent by mutableStateOf(listOf<UIMessagePart>())
 	var editingMessage by mutableStateOf<String?>(null)

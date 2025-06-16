@@ -1,5 +1,7 @@
 package io.curri.dictionary.chatbot.providers
 
+import io.curri.dictionary.chatbot.data.data_store.Settings
+import io.curri.dictionary.chatbot.data.data_store.findProvider
 import io.curri.dictionary.chatbot.data.models.Assistant
 import io.curri.dictionary.chatbot.data.models.ModelFromProvider
 import io.curri.dictionary.chatbot.data.models.UIMessage
@@ -14,7 +16,7 @@ import kotlinx.coroutines.flow.flow
 class GenerationHandler {
 
 	fun streamText(
-//		settings: Settings,
+		settings: Settings,
 		model: ModelFromProvider,
 		messages: List<UIMessage>,
 		transformers: List<MessageTransformer> = emptyList(),
@@ -27,14 +29,14 @@ class GenerationHandler {
 		maxSteps: Int = 5,
 	): Flow<List<UIMessage>> = flow {
 		var messages: List<UIMessage> = messages
-		val provider = ProviderSetting.TogetherAiProvider(
+		val mockProvider = ProviderSetting.TogetherAiProvider(
 			id = "together_ai",
 			name = "Together",
 			baseUrl = "https://api.together.xyz/v1",
-			apiKey = "",
+			apiKey = "mock_free_api_key",
 			models = MockData.mockListModel
 		) as ProviderSetting
-
+		val provider = model.findProvider(settings.providers) ?: error("Provider not found")
 		val providerImpl = ProviderManager.getProviderByType(provider)
 		generateInternal(
 			null,
@@ -45,7 +47,7 @@ class GenerationHandler {
 			},
 			transformers,
 			model = model,
-			provider = provider,
+			provider = mockProvider,
 			providerImpl = providerImpl,
 //				toolsInternal,
 //				memories?.invoke() ?: emptyList(),
@@ -86,7 +88,7 @@ class GenerationHandler {
 		val internalMessages = buildList {
 			if (assistant != null) {
 				val system = buildString {
-					// 如果助手有系统提示，则添加到消息中
+					// If the assistant has a system prompt, add it to the message
 					if (assistant.systemPrompt.isNotBlank()) {
 						append(assistant.systemPrompt)
 					}
@@ -95,7 +97,7 @@ class GenerationHandler {
 //						append(buildMemoryPrompt(memories))
 //					}
 				}
-				if(system.isNotBlank()) add(UIMessage.system(system))
+				if (system.isNotBlank()) add(UIMessage.system(system))
 			}
 			addAll(messages)
 		}.transforms(transformers, model)

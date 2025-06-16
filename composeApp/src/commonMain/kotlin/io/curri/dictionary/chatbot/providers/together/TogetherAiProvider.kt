@@ -1,8 +1,10 @@
 package io.curri.dictionary.chatbot.providers.together
 
+import androidx.compose.ui.util.fastFilter
 import io.curri.dictionary.chatbot.data.models.MessageChunk
 import io.curri.dictionary.chatbot.data.models.MessageRole
 import io.curri.dictionary.chatbot.data.models.ModelFromProvider
+import io.curri.dictionary.chatbot.data.models.ModelType
 import io.curri.dictionary.chatbot.data.models.UIMessage
 import io.curri.dictionary.chatbot.data.models.UIMessageChoice
 import io.curri.dictionary.chatbot.data.models.UIMessagePart
@@ -23,6 +25,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.isSuccess
 import io.ktor.util.appendIfNameAbsent
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -46,23 +49,25 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 		val requestBuilder = HttpRequestBuilder().apply {
 			method = HttpMethod.Get
 			url("${providerSetting.baseUrl}/models")
+			println("Url ${providerSetting.baseUrl}/models")
 			headers {
-				appendIfNameAbsent(HttpHeaders.ContentType, "application/json")
 				bearerAuth(providerSetting.apiKey)
+				appendIfNameAbsent(HttpHeaders.ContentType, "application/json")
 			}
 		}
 
 		runCatching {
 			val response = client.request(requestBuilder)
 			val result = if (response.status.isSuccess()) {
-				response.body<List<ModelFromProvider>>()
+				val rawResponse = response.body<List<ModelFromProvider>>()
+				val modelResult = rawResponse.filter { it.type == ModelType.CHAT }
+				modelResult.toImmutableList()
 			} else {
-				println("Request error: ${response.status}")
 				emptyList()
 			}
 			result
 		}.onFailure {
-			println("Request error: ${it.message}")
+			it.printStackTrace()
 		}.getOrNull() ?: emptyList()
 	}
 
@@ -70,7 +75,6 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 	override suspend fun generateText(
 		providerSetting: ProviderSetting.TogetherAiProvider, messages: List<UIMessage>, params: TextGenerationParams
 	): MessageChunk {
-		var counter = 0
 		return withContext(Dispatchers.IO) {
 			val requestBody = buildChatCompletionRequest(
 				messages, params, false
@@ -86,14 +90,9 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 				setBody(requestBody)
 			}
 			return@withContext runCatching {
-				println("Before request: $counter")
 				val response = client.request(requestBuilder)
-				println("After request: counter = $counter")
-				counter++
 				val result = response.bodyAsText()
-				println("Result: $result")
 				val bodyJson = jsonConfig.parseToJsonElement(result).jsonObject
-				println("Body json: $bodyJson")
 				// 从 JsonObject 中提取必要的信息
 				val id = bodyJson["id"]?.jsonPrimitive?.contentOrNull ?: ""
 				val model = bodyJson["model"]?.jsonPrimitive?.contentOrNull ?: ""
