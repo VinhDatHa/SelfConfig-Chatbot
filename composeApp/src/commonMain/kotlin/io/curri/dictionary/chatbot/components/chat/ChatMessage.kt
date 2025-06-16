@@ -90,7 +90,6 @@ private fun MessagePartsBlock(
 	val contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
 	val context = LocalPlatformContext.current
 
-
 	// Raw Text
 	parts.filterIsInstance<UIMessagePart.Text>().fastForEach { part ->
 		SelectionContainer {

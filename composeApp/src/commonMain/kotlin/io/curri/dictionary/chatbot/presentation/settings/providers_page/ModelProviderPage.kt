@@ -246,8 +246,7 @@ private fun ProviderItem(
 				TextButton(
 					onClick = {
 						setExpand(ProviderExpandState.Setting)
-					},
-					enabled = provider.enabled
+					}
 				) {
 					Icon(
 						imageVector = Lucide.Settings,

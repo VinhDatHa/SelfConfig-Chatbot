@@ -113,7 +113,8 @@ class ChatVM(
 	}
 
 	private suspend fun handleMessageComplete() {
-		val model = MockData.mockListModel.first()
+//		val model = MockData.mockListModel.first()
+		val model = currentModelChat.value ?: error("Model not found")
 		runCatching {
 			generationHandler.streamText(
 				settings.value,
@@ -130,12 +131,13 @@ class ChatVM(
 		}
 	}
 
+
 	private fun updateConversation(conversation: Conversation) {
 		if (conversation.id != _conversation.value.id) return
 		_conversation.update { conversation }
 	}
 
-	private fun regenerateAtMessage(message: UIMessage) {
+	fun regenerateAtMessage(message: UIMessage) {
 		if (message.role == MessageRole.USER) {
 			val indexAt = conversation.value.messages.indexOf(message)
 			indexAt.takeIf { it > -1 }?.let { index ->
@@ -165,7 +167,7 @@ class ChatVM(
 		}
 		_conversationJob.value?.cancel()
 		val job = viewModelScope.launch {
-//			handleMessageComplete()
+			handleMessageComplete()
 		}
 		_conversationJob.update { job }
 		job.invokeOnCompletion {

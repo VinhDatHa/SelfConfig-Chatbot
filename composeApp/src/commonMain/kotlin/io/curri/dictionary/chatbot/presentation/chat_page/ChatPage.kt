@@ -33,7 +33,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -53,6 +52,10 @@ import io.curri.dictionary.chatbot.components.chat.ChatMessage
 import io.curri.dictionary.chatbot.components.chat.ModelSelector
 import io.curri.dictionary.chatbot.components.chat.rememberChatInputState
 import io.curri.dictionary.chatbot.components.ui.Conversation
+import io.curri.dictionary.chatbot.components.ui.ToastType
+import io.curri.dictionary.chatbot.components.ui.Toaster
+import io.curri.dictionary.chatbot.components.ui.WavyCircularProgressIndicator
+import io.curri.dictionary.chatbot.components.ui.toaster
 import io.curri.dictionary.chatbot.data.models.ModelFromProvider
 import io.curri.dictionary.chatbot.data.models.ModelType
 import io.curri.dictionary.chatbot.data.models.UIMessage
@@ -101,6 +104,12 @@ internal fun ChatPage(
 					}
 				)
 			},
+			snackbarHost = {
+				Toaster(
+					modifier = Modifier.fillMaxWidth(),
+					toastState = toaster
+				)
+			},
 			bottomBar = {
 				ChatInput(
 					state = inputState,
@@ -113,6 +122,10 @@ internal fun ChatPage(
 					},
 					onSendClick = {
 						// ToDo handle model chat is not null
+						if (chatModel == null) {
+							toaster.show("Please selected model", ToastType.ERROR)
+							return@ChatInput
+						}
 						if (inputState.isEditing()) {
 							//ToDo handling message edit
 							viewModel.handleMessageEdit(
@@ -120,10 +133,8 @@ internal fun ChatPage(
 								uuid = inputState.editingMessage ?: return@ChatInput
 							)
 						} else {
-							//ToDo send message
 							viewModel.handleMessageSend(inputState.messageContent)
 						}
-
 						inputState.clearInput()
 					},
 					onImageDelete = {
@@ -151,10 +162,11 @@ internal fun ChatPage(
 				loading = false,
 				model = chatModel ?: MockData.mockModelProvider,
 				onEdit = {
-
+					inputState.editingMessage = it.id
+					inputState.messageContent = it.parts
 				},
-				onRegenerate = {
-
+				onRegenerate = { message ->
+					viewModel.regenerateAtMessage(message)
 				}
 			)
 		}
@@ -188,7 +200,13 @@ internal fun ChatList(
 
 			if (loading) {
 				item(LoadingIndicatorKey) {
-					// ToDo wavy circular progress indicator
+					WavyCircularProgressIndicator(
+						modifier = Modifier
+							.padding(start = 4.dp)
+							.size(24.dp),
+						strokeWidth = 2.dp,
+						waveCount = 8
+					)
 				}
 			}
 

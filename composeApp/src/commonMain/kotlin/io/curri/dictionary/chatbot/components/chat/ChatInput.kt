@@ -51,7 +51,6 @@ import dictionarychatbot.composeapp.generated.resources.chat_input_placeholder
 import dictionarychatbot.composeapp.generated.resources.editing
 import dictionarychatbot.composeapp.generated.resources.more_options
 import dictionarychatbot.composeapp.generated.resources.send
-import dictionarychatbot.composeapp.generated.resources.stop
 import io.curri.dictionary.chatbot.data.models.UIMessagePart
 import io.curri.dictionary.chatbot.data.models.isEmptyMessage
 import org.jetbrains.compose.resources.stringResource
@@ -263,11 +262,12 @@ fun ChatInput(
 					),
 					enabled = state.loading || !state.messageContent.isEmptyMessage()
 				) {
-					if (state.loading) {
-						Icon(Lucide.X, stringResource(Res.string.stop))
-					} else {
-						Icon(Lucide.ArrowUp, stringResource(Res.string.send))
-					}
+					Icon(imageVector = if (state.loading) Lucide.X else Lucide.ArrowUp, stringResource(Res.string.send))
+//					if (state.loading) {
+//						Icon(Lucide.X, stringResource(Res.string.stop))
+//					} else {
+//						Icon(Lucide.ArrowUp, stringResource(Res.string.send))
+//					}
 				}
 			}
 
