@@ -13,13 +13,14 @@ import io.curri.dictionary.chatbot.data.models.UIMessage
 import io.curri.dictionary.chatbot.data.models.UIMessagePart
 import io.curri.dictionary.chatbot.data.models.isEmptyMessage
 import io.curri.dictionary.chatbot.providers.GenerationHandler
-import io.curri.dictionary.chatbot.utils.MockData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -49,6 +50,9 @@ class ChatVM(
 	val currentModelChat = dataStore.settingsFlow.map {
 		it.providers.findModelById(it.chatModelId)
 	}.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+	private val _errorFlow = MutableSharedFlow<Throwable>()
+	val errorFlow = _errorFlow.asSharedFlow()
 
 	fun handleMessageSend(content: List<UIMessagePart>) {
 		if (content.isEmptyMessage()) return
@@ -113,8 +117,10 @@ class ChatVM(
 	}
 
 	private suspend fun handleMessageComplete() {
-//		val model = MockData.mockListModel.first()
-		val model = currentModelChat.value ?: error("Model not found")
+		val model = currentModelChat.value ?: run {
+			_errorFlow.emit(IllegalArgumentException("Model not found"))
+			return
+		}
 		runCatching {
 			generationHandler.streamText(
 				settings.value,
@@ -128,6 +134,10 @@ class ChatVM(
 				}
 				updateConversation(conversation.value.copy(messages = it))
 			}
+		}.onFailure {
+			_errorFlow.emit(it)
+		}.onSuccess {
+			// ToDo generate title
 		}
 	}
 

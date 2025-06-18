@@ -49,6 +49,7 @@ import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Volume2
 import com.composables.icons.lucide.Wrench
 import io.curri.dictionary.chatbot.components.ui.FormItem
+import io.curri.dictionary.chatbot.components.ui.richtext.MarkdownBlock
 import io.curri.dictionary.chatbot.data.models.MessageRole
 import io.curri.dictionary.chatbot.data.models.UIMessage
 import io.curri.dictionary.chatbot.data.models.UIMessagePart
@@ -99,13 +100,13 @@ private fun MessagePartsBlock(
 					shape = RoundedCornerShape(8.dp)
 				) {
 					Column(modifier = Modifier.padding(8.dp)) {
-						// ToDo display markdown here
-						Text(part.text)
+						MarkdownBlock(content = part.text)
 					}
 				}
 			} else {
-				// ToDo Markdown Block define here
-				Text(part.text)
+				MarkdownBlock(
+					content = part.text
+				)
 			}
 		}
 	}

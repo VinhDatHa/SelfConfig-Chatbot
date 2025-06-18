@@ -26,6 +26,7 @@ navigationCommonAndroid = "2.9.0"
 koin = "4.0.0"
 kotlinx-collections-immutable = "0.3.8"
 datastore = "1.1.4"
+markdown = "0.7.3"
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
@@ -79,6 +80,9 @@ koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", versi
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
 koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
+
+#markdown
+jetbrains-markdown = { group = "org.jetbrains", name = "markdown", version.ref = "markdown" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

@@ -1,6 +1,5 @@
 package io.curri.dictionary.chatbot.providers.together
 
-import androidx.compose.ui.util.fastFilter
 import io.curri.dictionary.chatbot.data.models.MessageChunk
 import io.curri.dictionary.chatbot.data.models.MessageRole
 import io.curri.dictionary.chatbot.data.models.ModelFromProvider
@@ -96,7 +95,6 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 				val response = client.request(requestBuilder)
 				val result = response.bodyAsText()
 				val bodyJson = jsonConfig.parseToJsonElement(result).jsonObject
-				// 从 JsonObject 中提取必要的信息
 				val id = bodyJson["id"]?.jsonPrimitive?.contentOrNull ?: ""
 				val model = bodyJson["model"]?.jsonPrimitive?.contentOrNull ?: ""
 				val choice = bodyJson["choices"]?.jsonArray?.get(0)?.jsonObject ?: error("choices is null")
@@ -113,6 +111,7 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 				)
 			}.onFailure {
 				println("Message error: $it")
+				throw Exception(it.message)
 			}.getOrNull() ?: MessageChunk("", "", emptyList())
 		}
 	}

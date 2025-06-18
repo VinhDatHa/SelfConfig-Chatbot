@@ -33,6 +33,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -78,6 +79,11 @@ internal fun ChatPage(
 	val settings by viewModel.settings.collectAsStateWithLifecycle()
 	val chatModel by viewModel.currentModelChat.collectAsStateWithLifecycle()
 
+	LaunchedEffect(Unit) {
+		viewModel.errorFlow.collect { error ->
+			toaster.show(error.message ?: "An error occurred", type = ToastType.ERROR)
+		}
+	}
 	ModalNavigationDrawer(
 		drawerState = drawerState,
 		drawerContent = {

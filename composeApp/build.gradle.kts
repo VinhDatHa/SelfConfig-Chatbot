@@ -53,6 +53,7 @@ kotlin {
 			implementation(libs.koin.android)
 			implementation(libs.koin.androidx.compose)
 			implementation(libs.androidx.datastore)
+			implementation(libs.jetbrains.markdown)
 		}
 		commonMain.dependencies {
 			implementation(compose.runtime)
@@ -76,6 +77,7 @@ kotlin {
 			implementation(libs.androidx.datastore.preferences)
 			implementation(libs.androidx.datastore)
 			implementation(libs.kotlinx.reflect)
+			implementation(libs.jetbrains.markdown)
 		}
 		appleMain.dependencies {
 			implementation(libs.ktor.client.darwin)
