@@ -165,8 +165,7 @@ internal fun ChatPage(
 			ChatList(
 				innerPaddingValues = innerPadding,
 				conversation = conversation,
-				loading = false,
-				model = chatModel ?: MockData.mockModelProvider,
+				loading = loadingJob != null,
 				onEdit = {
 					inputState.editingMessage = it.id
 					inputState.messageContent = it.parts
@@ -184,7 +183,6 @@ internal fun ChatList(
 	innerPaddingValues: PaddingValues,
 	conversation: Conversation,
 	loading: Boolean,
-	model: ModelFromProvider,
 	onRegenerate: (UIMessage) -> Unit = {},
 	onEdit: (UIMessage) -> Unit = {}
 ) {

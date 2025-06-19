@@ -51,7 +51,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastFilter
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.composables.icons.lucide.BadgePlus
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pen
@@ -172,7 +171,8 @@ private fun ProviderItem(
 		),
 	) {
 		Column(
-			modifier = Modifier.padding(16.dp)
+			modifier = Modifier
+				.padding(16.dp)
 				.animateContentSize(),
 			verticalArrangement = Arrangement.spacedBy(8.dp),
 		) {
@@ -319,16 +319,15 @@ private fun ModelList(
 ) {
 	val modelList by produceState(emptyList(), providerSetting) {
 		runCatching {
-			println("loading models...")
 			value = ProviderManager.getProviderByType(providerSetting)
 				.listModels(providerSetting)
 				.sortedBy { it.modelId }
 				.toImmutableList()
-			println(value)
 		}.onFailure {
 			it.printStackTrace()
 		}
 	}
+	println("List model: ${providerSetting.models}")
 
 	Column(
 		modifier = Modifier
@@ -337,7 +336,6 @@ private fun ModelList(
 		horizontalAlignment = Alignment.CenterHorizontally,
 		verticalArrangement = Arrangement.spacedBy(8.dp)
 	) {
-		// 模型列表
 		if (providerSetting.models.isEmpty()) {
 			Column(
 				modifier = Modifier
@@ -358,7 +356,9 @@ private fun ModelList(
 				)
 			}
 		} else {
+
 			providerSetting.models.forEach { model ->
+				println("On Each: $model")
 				key(model.modelId) {
 					ModelCard(
 						model = model,
@@ -484,112 +484,112 @@ private fun ModelCard(
 				}
 			}
 		}
-		SwipeToDismissBox(
-			state = swipeToDismissBoxState,
-			backgroundContent = {
-				Row(
-					modifier = Modifier
-						.fillMaxSize()
-						.padding(8.dp),
-					horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-					verticalAlignment = Alignment.CenterVertically
+	}
+	SwipeToDismissBox(
+		state = swipeToDismissBoxState,
+		backgroundContent = {
+			Row(
+				modifier = Modifier
+					.fillMaxSize()
+					.padding(8.dp),
+				horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+				verticalAlignment = Alignment.CenterVertically
+			) {
+				IconButton(
+					onClick = {
+						scope.launch {
+							swipeToDismissBoxState.reset()
+						}
+					}
 				) {
-					IconButton(
-						onClick = {
-							scope.launch {
-								swipeToDismissBoxState.reset()
-							}
-						}
-					) {
-						Icon(Lucide.X, null)
-					}
-					FilledIconButton(
-						onClick = {
-							scope.launch {
-								onDelete()
-								swipeToDismissBoxState.reset()
-							}
-						}
-					) {
-						Icon(Lucide.Trash2, contentDescription = "删除")
-					}
+					Icon(Lucide.X, null)
 				}
-			},
-			enableDismissFromStartToEnd = false,
-			gesturesEnabled = true,
-			modifier = modifier
-		) {
-			OutlinedCard {
-				Row(
-					modifier = Modifier
-						.fillMaxWidth()
-						.padding(horizontal = 12.dp, vertical = 4.dp),
-					horizontalArrangement = Arrangement.spacedBy(8.dp),
-					verticalAlignment = Alignment.CenterVertically
+				FilledIconButton(
+					onClick = {
+						scope.launch {
+							onDelete()
+							swipeToDismissBoxState.reset()
+						}
+					}
 				) {
-					AutoAIIcon(
-						name = model.modelId,
-						modifier = Modifier.size(28.dp),
+					Icon(Lucide.Trash2, contentDescription = "删除")
+				}
+			}
+		},
+		enableDismissFromStartToEnd = false,
+		gesturesEnabled = true,
+		modifier = modifier
+	) {
+		OutlinedCard {
+			Row(
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(horizontal = 12.dp, vertical = 4.dp),
+				horizontalArrangement = Arrangement.spacedBy(8.dp),
+				verticalAlignment = Alignment.CenterVertically
+			) {
+				AutoAIIcon(
+					name = model.modelId,
+					modifier = Modifier.size(28.dp),
+				)
+				Column(modifier = Modifier.weight(1f)) {
+					Text(
+						text = model.modelId,
+						style = MaterialTheme.typography.labelSmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
 					)
-					Column(modifier = Modifier.weight(1f)) {
-						Text(
-							text = model.modelId,
-							style = MaterialTheme.typography.labelSmall,
-							color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-						)
-						Text(
-							text = model.displayName,
-							style = MaterialTheme.typography.titleSmall,
-							maxLines = 1,
-							overflow = TextOverflow.Ellipsis
-						)
-						/*
-						Row(
-							horizontalArrangement = Arrangement.spacedBy(4.dp),
-						) {
-							Tag(
-								type = TagType.INFO
-							) {
-								Text(
-									text = when (model.type) {
-										ModelType.CHAT -> "Chat Model"
-										ModelType.EMBEDDING -> "Embedding"
-										ModelType.AUDIO -> "Audio"
-										ModelType.IMAGE -> "Image"
-									}
-								)
-							}
-							Tag(
-								type = TagType.SUCCESS
-							) {
-								Text(
-									text = buildString {
-										append(model.inputModalities.joinToString(",") { it.name.lowercase() })
-										append("->")
-										append(model.outputModalities.joinToString(",") { it.name.lowercase() })
-									},
-									maxLines = 1,
-								)
-							}
-							if (model.abilities.contains(ModelAbility.TOOL)) {
-								Tag(
-									type = TagType.WARNING
-								) {
-									Icon(Lucide.Hammer, null, modifier = Modifier.size(14.dp))
-								}
-							}
-						}
-						 */
-					}
-
-					// Edit button
-					IconButton(
-						onClick = {
-							dialogState.open(model.copy())
-						}
+					Text(
+						text = model.displayName,
+						style = MaterialTheme.typography.titleSmall,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis
+					)
+					/*
+					Row(
+						horizontalArrangement = Arrangement.spacedBy(4.dp),
 					) {
-						Icon(imageVector = Lucide.Pen, "Edit")
+						Tag(
+							type = TagType.INFO
+						) {
+							Text(
+								text = when (model.type) {
+									ModelType.CHAT -> "Chat Model"
+									ModelType.EMBEDDING -> "Embedding"
+									ModelType.AUDIO -> "Audio"
+									ModelType.IMAGE -> "Image"
+								}
+							)
+						}
+						Tag(
+							type = TagType.SUCCESS
+						) {
+							Text(
+								text = buildString {
+									append(model.inputModalities.joinToString(",") { it.name.lowercase() })
+									append("->")
+									append(model.outputModalities.joinToString(",") { it.name.lowercase() })
+								},
+								maxLines = 1,
+							)
+						}
+						if (model.abilities.contains(ModelAbility.TOOL)) {
+							Tag(
+								type = TagType.WARNING
+							) {
+								Icon(Lucide.Hammer, null, modifier = Modifier.size(14.dp))
+							}
+						}
 					}
+					 */
+				}
+
+				// Edit button
+				IconButton(
+					onClick = {
+						dialogState.open(model.copy())
+					}
+				) {
+					Icon(imageVector = Lucide.Pen, "Edit")
 				}
 			}
 		}
@@ -616,9 +616,7 @@ private fun AddModelButton(
 	}
 
 	val modelPickerState = useEditState<ModelFromProvider?> { model ->
-		model?.let {
-			setModelId(it.modelId)
-		}
+		model?.let { setModelId(model.modelId) }
 	}
 
 	Card(
@@ -750,7 +748,7 @@ private fun ModelPicker(
 	modelListState: EditState<ModelFromProvider?>,
 	models: List<ModelFromProvider>
 ) {
-	println("All models: ${models.size}")
+
 	if (modelListState.isEditing) {
 		ModalBottomSheet(
 			onDismissRequest = { modelListState.dismiss() },
@@ -823,6 +821,7 @@ private fun ModelPicker(
 			}
 		}
 	}
+
 	BadgedBox(
 		modifier = Modifier.padding(4.dp),
 		badge = {

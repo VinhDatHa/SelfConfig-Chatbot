@@ -65,7 +65,7 @@ private fun ProviderConfigure(
 		Checkbox(
 			checked = provider.enabled,
 			onCheckedChange = {
-				 onConfig(provider.copy(enabled = it))
+				onConfig(provider.copy(enabled = it))
 			}
 		)
 	}
@@ -103,7 +103,7 @@ private fun ProviderConfigure(
 				}
 			) {
 				Icon(
-					imageVector = if(isShowingKey) Lucide.EyeOff else Lucide.Eye,
+					imageVector = if (isShowingKey) Lucide.EyeOff else Lucide.Eye,
 					contentDescription = "Showing key"
 				)
 			}

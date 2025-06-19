@@ -81,7 +81,7 @@ class ChatVM(
 		}
 		_conversationJob.update { job }
 		job.invokeOnCompletion {
-			this._conversationJob.update { null }
+			_conversationJob.update { null }
 		}
 	}
 
@@ -127,11 +127,6 @@ class ChatVM(
 				model = model,
 				messages = _conversation.value.messages
 			).collect {
-				it.map { message ->
-					message.parts.forEach { part ->
-						println("Text ${(part as UIMessagePart.Text).text}")
-					}
-				}
 				updateConversation(conversation.value.copy(messages = it))
 			}
 		}.onFailure {

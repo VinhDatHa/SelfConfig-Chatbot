@@ -9,8 +9,11 @@ import io.curri.dictionary.chatbot.data.models.handleMessageChunk
 import io.curri.dictionary.chatbot.data.models.providers.ProviderSetting
 import io.curri.dictionary.chatbot.transformer.MessageTransformer
 import io.curri.dictionary.chatbot.transformer.transforms
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 
 class GenerationHandler {
 
@@ -43,27 +46,9 @@ class GenerationHandler {
 			providerImpl = providerImpl,
 //				toolsInternal,
 //				memories?.invoke() ?: emptyList(),
-			stream = false
 		)
-
-//		for (i in 0..maxSteps) {
-//			generateInternal(
-//				null,
-//				messages,
-//				{
-//					messages = it
-//					emit(messages)
-//				},
-//				transformers,
-//				model = model,
-//				provider = provider,
-//				providerImpl = providerImpl,
-////				toolsInternal,
-////				memories?.invoke() ?: emptyList(),
-//				stream = false
-//			)
-//		}
-	}
+		emit(messages)
+	}.flowOn(Dispatchers.IO)
 
 	private suspend fun generateInternal(
 		assistant: Assistant?,
@@ -100,25 +85,6 @@ class GenerationHandler {
 			temperature = assistant?.temperature,
 //			tools = tools
 		)
-//		if (stream) {
-//			providerImpl.streamText(
-//				providerSetting = provider,
-//				messages = internalMessages,
-//				params = params
-//			).collect {
-//				messages = messages.handleMessageChunk(it)
-//				onUpdateMessages(messages)
-//			}
-//		} else {
-//			messages = messages.handleMessageChunk(
-//				providerImpl.generateText(
-//					providerSetting = provider,
-//					messages = internalMessages,
-//					params = params,
-//				)
-//			)
-//			onUpdateMessages(messages)
-//		}
 		messages = messages.handleMessageChunk(
 			providerImpl.generateText(
 				providerSetting = provider,

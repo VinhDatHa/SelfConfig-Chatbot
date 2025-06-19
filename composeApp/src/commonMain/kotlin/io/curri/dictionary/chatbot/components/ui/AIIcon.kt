@@ -62,9 +62,9 @@ fun AIIcon(
 		"openrouter" -> Res.drawable.ic_openrouter
 		"mistral-color" -> Res.drawable.ic_mistral
 		"meta-color", "meta" -> Res.drawable.ic_meta
-		"gemma-color" -> Res.drawable.ic_gemma_color
+		"gemma-color", "gemma" -> Res.drawable.ic_gemma_color
 		"togetherai" -> Res.drawable.together_color
-		else -> null
+		else -> Res.drawable.ic_gemma_color
 	}
 
 	if (modelIconResources != null) {

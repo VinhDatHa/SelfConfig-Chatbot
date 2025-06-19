@@ -85,7 +85,6 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 				url("${providerSetting.baseUrl}/chat/completions")
 				headers {
 					appendIfNameAbsent(HttpHeaders.ContentType, "application/json")
-					println("Provider key: ${providerSetting.apiKey}")
 					bearerAuth(providerSetting.apiKey)
 				}
 				println("Request body: $requestBody")
@@ -101,11 +100,31 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 
 				val message = choice["message"]?.jsonObject ?: throw Exception("message is null")
 				val finishReason = choice["finish_reason"]?.jsonPrimitive?.content ?: "unknown"
-
+				val errorMessage = bodyJson["error"]?.jsonObject
+				bodyJson["error"]?.jsonObject?.let { errorObject ->
+					val messageError = errorObject["message"]?.jsonPrimitive?.contentOrNull
+					MessageChunk(
+						id = id, model = model, choices = listOf(
+							UIMessageChoice(
+								index = 0,
+								message = UIMessage(
+									role = MessageRole.SYSTEM,
+									parts = buildList {
+										UIMessagePart.Text(messageError ?: "Unknown error. Please try again later")
+									}
+								),
+								finishReason = null,
+								delta = null
+							)
+						)
+					)
+				}
 				MessageChunk(
 					id = id, model = model, choices = listOf(
 						UIMessageChoice(
-							index = 0, delta = null, message = parseMessage(message), finishReason = finishReason
+							index = 0, delta = null,
+							message = parseMessage(message),
+							finishReason = finishReason
 						)
 					)
 				)
@@ -147,7 +166,8 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 									})
 								}
 
-								is UIMessagePart.Image -> {                                        /* ToDo build content for Image
+								is UIMessagePart.Image -> {
+									/* ToDo build content for Image
 										add(buildJsonObject {
 											part.encodeBase64().onSuccess {
 												put("type", "image_url")
@@ -235,9 +255,7 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 	): JsonObject {
 		return buildJsonObject {
 			put("model", params.model.modelId)
-			put(
-				"messages", messages.toMessageJson()
-			)
+			put("messages", messages.toMessageJson())
 			put("temperature", params.temperature)
 			put("top_p", params.topP)
 			put("stream", stream)
