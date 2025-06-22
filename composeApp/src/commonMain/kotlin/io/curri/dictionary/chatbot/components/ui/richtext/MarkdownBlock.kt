@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material3.ColorScheme
@@ -137,7 +139,6 @@ private fun MarkdownAst(modifier: Modifier = Modifier, astNode: ASTNode, content
 		modifier
 	) {
 		astNode.children.fastForEach { child ->
-			// ToDo markdown node
 			MarkdownNode(child, content)
 		}
 	}
@@ -542,6 +543,7 @@ private fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Mo
 				modifier = modifier
 			)
 		}
+
 		GFMElementTypes.TABLE -> {
 			Table(modifier = modifier) {
 				node.children.fastForEach {
@@ -549,12 +551,17 @@ private fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Mo
 				}
 			}
 		}
+
 		GFMElementTypes.HEADER -> {
 			TableHeader(modifier = modifier) {
 				node.children.fastForEach {
 					if (it.type == GFMTokenTypes.CELL) {
 						TableCell {
 							MarkdownNode(it, content)
+						}
+					} else {
+						TableCell {
+							Text(content)
 						}
 					}
 				}
@@ -573,17 +580,43 @@ private fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Mo
 			}
 		}
 
+		MarkdownElementTypes.CODE_SPAN -> {
+			val code = node.getTextInNode(content).trim('`').toString()
+			Text(
+				text = code.toString(),
+				fontFamily = FontFamily.Monospace,
+				modifier = modifier
+			)
+		}
+
+		MarkdownTokenTypes.TEXT, MarkdownTokenTypes.WHITE_SPACE -> {
+			val text = node.getTextInNode(content).toString()
+			Text(
+				text = text,
+				modifier = modifier
+			)
+		}
+
+		MarkdownTokenTypes.EOL -> {
+			Spacer(Modifier.fillMaxWidth())
+		}
+
 		MarkdownElementTypes.IMAGE -> {
 			val altText =
 				node.findChildOfType(MarkdownElementTypes.LINK_TEXT)?.getTextInNode(content) ?: ""
 			val imageUrl =
-				node.findChildOfType(MarkdownElementTypes.LINK_DESTINATION)?.getTextInNode(content)
-					?: ""
+				node.findChildOfType(MarkdownElementTypes.LINK_DESTINATION)?.getTextInNode(content) ?: ""
 			Column(
 				modifier = modifier,
 				horizontalAlignment = Alignment.CenterHorizontally
 			) {
 				AsyncImage(model = imageUrl, contentDescription = altText.toString())
+			}
+		}
+
+		else -> {
+			node.children.fastForEach { child ->
+				MarkdownNode(child, content, modifier)
 			}
 		}
 	}

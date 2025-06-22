@@ -327,7 +327,6 @@ private fun ModelList(
 			it.printStackTrace()
 		}
 	}
-	println("List model: ${providerSetting.models}")
 
 	Column(
 		modifier = Modifier

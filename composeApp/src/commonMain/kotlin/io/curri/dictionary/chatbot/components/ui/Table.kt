@@ -16,6 +16,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
+fun Table(
+	modifier: Modifier = Modifier,
+	content: @Composable () -> Unit
+) {
+	Surface(
+		modifier = modifier
+			.border(
+				width = 1.dp,
+				color = MaterialTheme.colorScheme.outlineVariant,
+				shape = MaterialTheme.shapes.small
+			),
+		shape = MaterialTheme.shapes.small
+	) {
+		ProvideTextStyle(MaterialTheme.typography.bodySmall) {
+			Column(
+				modifier = Modifier.fillMaxWidth()
+			) {
+				content()
+			}
+		}
+	}
+}
+
+@Composable
 internal fun RowScope.TableCell(
 	modifier: Modifier = Modifier,
 	weight: Float = 1f,
@@ -55,29 +79,5 @@ internal fun TableHeader(
 			verticalAlignment = Alignment.CenterVertically,
 			content = content
 		)
-	}
-}
-
-@Composable
-fun Table(
-	modifier: Modifier = Modifier,
-	content: @Composable () -> Unit
-) {
-	Surface(
-		modifier = modifier
-			.border(
-				width = 1.dp,
-				color = MaterialTheme.colorScheme.outlineVariant,
-				shape = MaterialTheme.shapes.small
-			),
-		shape = MaterialTheme.shapes.small
-	) {
-		ProvideTextStyle(MaterialTheme.typography.bodySmall) {
-			Column(
-				modifier = Modifier.fillMaxWidth()
-			) {
-				content()
-			}
-		}
 	}
 }
