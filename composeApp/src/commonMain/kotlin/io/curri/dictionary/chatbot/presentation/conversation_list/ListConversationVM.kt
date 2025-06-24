@@ -40,6 +40,9 @@ class ListConversationVM(
 				}.onCompletion {
 					_screenState.value = ScreenState.Idle
 				}.collectLatest { conversations ->
+					conversations.forEach {
+						println(it)
+					}
 					_conversations.value = conversations
 				}
 		}

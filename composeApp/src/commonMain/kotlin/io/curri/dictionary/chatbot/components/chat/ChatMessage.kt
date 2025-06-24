@@ -6,15 +6,20 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,9 +41,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
+import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import com.composables.icons.lucide.BookDashed
 import com.composables.icons.lucide.BookHeart
@@ -49,6 +57,7 @@ import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Volume2
 import com.composables.icons.lucide.Wrench
 import io.curri.dictionary.chatbot.components.ui.FormItem
+import io.curri.dictionary.chatbot.components.ui.ImagePreviewDialog
 import io.curri.dictionary.chatbot.components.ui.richtext.MarkdownBlock
 import io.curri.dictionary.chatbot.data.models.MessageRole
 import io.curri.dictionary.chatbot.data.models.UIMessage
@@ -110,12 +119,47 @@ private fun MessagePartsBlock(
 			}
 		}
 	}
+	if (parts.fastAny { it is UIMessagePart.Image }) {
+		FlowRow(
+			horizontalArrangement = Arrangement.spacedBy(8.dp)
+		) {
+			var showImageViewer by remember { mutableStateOf(false) }
+			var urlDetail by remember { mutableStateOf("") }
+			parts.filterIsInstance<UIMessagePart.Image>().let { parts ->
+				LazyRow(modifier = Modifier.height(110.dp).align(Alignment.CenterVertically)) {
+					items(parts, key = { item -> item.url }) { image ->
+						Card(
+							modifier = Modifier.height(100.dp).aspectRatio(1f)
+								.clickable {
+									showImageViewer = true
+									urlDetail = image.url
+								},
+						) {
+							AsyncImage(
+								model = image.url,
+								contentDescription = "image",
+								modifier = Modifier
+									.clip(RoundedCornerShape(8.dp))
+									.width(100.dp),
+								contentScale = ContentScale.Crop
+							)
+						}
+					}
+				}
+			}
+			if (showImageViewer) {
+				ImagePreviewDialog(urlDetail) {
+					showImageViewer = false
+					urlDetail = ""
+				}
+			}
+		}
+	}
 
 	// Tool calls
 	parts.filterIsInstance<UIMessagePart.ToolResult>().fastForEachIndexed { index, tool ->
 		key(index) {
 			var showResult by remember { mutableStateOf(false) }
-
 			Surface(
 				shape = RoundedCornerShape(25),
 				tonalElevation = 4.dp,
@@ -153,6 +197,7 @@ private fun MessagePartsBlock(
 			}
 
 			if (showResult) {
+				// ToDo later
 				BasicAlertDialog(
 					onDismissRequest = {
 						showResult = false

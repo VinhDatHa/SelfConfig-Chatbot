@@ -68,13 +68,13 @@ internal fun ListConversationScreen(
 	val conversations by viewModel.conversation.collectAsStateWithLifecycle()
 	val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 	Scaffold(
+		modifier = Modifier.background(MaterialTheme.colorScheme.background),
 		topBar = {
 			TopAppBar(
 				title = {
 					Text(
 						"Recent chat",
 						style = MaterialTheme.typography.titleLarge,
-						fontWeight = FontWeight.SemiBold
 					)
 				},
 				actions = {
@@ -114,7 +114,6 @@ internal fun ListConversationScreen(
 
 				items(conversations, key = { conversation -> conversation.id }) { item ->
 					ConversationItem(conversation = item, selected = false, loading = screenState is ScreenState.Loading, onClick = {
-						println("Info: ${it.messages}")
 						openConversation(it)
 					}, onDelete = {
 

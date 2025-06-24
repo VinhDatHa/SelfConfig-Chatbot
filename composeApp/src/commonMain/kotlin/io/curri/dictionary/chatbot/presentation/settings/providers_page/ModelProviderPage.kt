@@ -357,7 +357,6 @@ private fun ModelList(
 		} else {
 
 			providerSetting.models.forEach { model ->
-				println("On Each: $model")
 				key(model.modelId) {
 					ModelCard(
 						model = model,
@@ -661,7 +660,6 @@ private fun AddModelButton(
 								Text("For Example：gpt-3.5-turbo", modifier = Modifier.fillMaxWidth())
 							},
 							trailingIcon = {
-								println("All models 1: ${models.size}")
 								ModelPicker(modelPickerState, models)
 							}
 						)

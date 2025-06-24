@@ -128,7 +128,7 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 								)
 							)
 						)
-				}
+					}
 
 				}
 
@@ -171,6 +171,12 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 								}
 
 								is UIMessagePart.Image -> {
+									add(buildJsonObject {
+										put("type", "image_url")
+										put("image_url", buildJsonObject {
+											put("url", part.url)
+										})
+									})
 									/* ToDo build content for Image
 										add(buildJsonObject {
 											part.encodeBase64().onSuccess {

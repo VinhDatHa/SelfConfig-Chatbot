@@ -51,6 +51,7 @@ import dictionarychatbot.composeapp.generated.resources.chat_input_placeholder
 import dictionarychatbot.composeapp.generated.resources.editing
 import dictionarychatbot.composeapp.generated.resources.more_options
 import dictionarychatbot.composeapp.generated.resources.send
+import io.curri.dictionary.chatbot.components.ui.TakeImageButton
 import io.curri.dictionary.chatbot.data.models.UIMessagePart
 import io.curri.dictionary.chatbot.data.models.isEmptyMessage
 import org.jetbrains.compose.resources.stringResource
@@ -242,6 +243,7 @@ fun ChatInput(
 					onClick = {
 						// ToDo expland later
 //						expand = !expand
+						expand = !expand
 					}
 				) {
 					Icon(
@@ -278,6 +280,10 @@ fun ChatInput(
 						horizontalArrangement = Arrangement.spacedBy(4.dp),
 					) {
 						// ToDo pick media later
+						TakeImageButton {
+							state.addImages(listOf(it))
+							expand = false
+						}
 //						TakePicButton {
 //							state.addImages(it)
 //							expand = false

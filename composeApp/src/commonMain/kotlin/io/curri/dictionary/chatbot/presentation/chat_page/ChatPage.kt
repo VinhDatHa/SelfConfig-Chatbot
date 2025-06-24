@@ -132,7 +132,6 @@ internal fun ChatPage(
 						loadingJob?.cancel()
 					},
 					onSendClick = {
-						// ToDo handle model chat is not null
 						if (chatModel == null) {
 							toaster.show("Please selected model", ToastType.ERROR)
 							return@ChatInput
