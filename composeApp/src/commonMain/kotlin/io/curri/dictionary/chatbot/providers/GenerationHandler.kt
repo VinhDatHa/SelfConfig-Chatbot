@@ -29,6 +29,7 @@ class GenerationHandler {
 //		onUpdateMemory: (suspend (Int, String) -> AssistantMemory)? = null,
 //		onDeleteMemory: (suspend (Int) -> Unit)? = null,
 		maxSteps: Int = 5,
+		params: TextGenerationParams? = null,
 	): Flow<List<UIMessage>> = flow {
 		var messages: List<UIMessage> = messages
 		val provider = model.findProvider(settings.providers) ?: error("Provider not found")
@@ -46,6 +47,7 @@ class GenerationHandler {
 			providerImpl = providerImpl,
 //				toolsInternal,
 //				memories?.invoke() ?: emptyList(),
+			params = params
 		)
 		emit(messages)
 	}.flowOn(Dispatchers.IO)
@@ -60,7 +62,8 @@ class GenerationHandler {
 		providerImpl: Provider<ProviderSetting>,
 //		tools: List<Tool>,
 //		memories: List<AssistantMemory>,
-		stream: Boolean = false
+		stream: Boolean = false,
+		params: TextGenerationParams? = null
 	) {
 		val internalMessages = buildList {
 			if (assistant != null) {
@@ -80,7 +83,7 @@ class GenerationHandler {
 		}.transforms(transformers, model)
 
 		var messages: List<UIMessage> = messages
-		val params = TextGenerationParams(
+		val textParam = params ?: TextGenerationParams(
 			model = model,
 			temperature = assistant?.temperature,
 //			tools = tools
@@ -89,7 +92,7 @@ class GenerationHandler {
 			providerImpl.generateText(
 				providerSetting = provider,
 				messages = internalMessages,
-				params = params,
+				params = textParam,
 			)
 		)
 		onUpdateMessages(messages)

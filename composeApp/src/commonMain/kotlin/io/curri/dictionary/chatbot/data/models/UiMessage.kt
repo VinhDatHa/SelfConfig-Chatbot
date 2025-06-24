@@ -65,6 +65,15 @@ data class UIMessage(
 		}
 	}
 
+	fun summaryAsText(): String {
+		return "[${role.name}]: " + parts.joinToString(separator = "\n") { part ->
+			when (part) {
+				is UIMessagePart.Text -> part.text
+				else -> ""
+			}
+		}
+	}
+
 	operator fun plus(chunk: MessageChunk): UIMessage {
 		return this.appendChunk(chunk)
 	}
@@ -96,7 +105,7 @@ sealed class UIMessagePart {
 		val toolName: String,
 		val content: JsonElement,
 		val arguments: JsonElement
-	): UIMessagePart()
+	) : UIMessagePart()
 }
 
 @Serializable

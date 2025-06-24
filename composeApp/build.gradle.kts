@@ -10,7 +10,7 @@ plugins {
 	alias(libs.plugins.composeHotReload)
 	alias(libs.plugins.kotlin.serialization)
 	alias(libs.plugins.ksp)
-
+	alias(libs.plugins.room)
 }
 
 kotlin {
@@ -78,6 +78,8 @@ kotlin {
 			implementation(libs.androidx.datastore)
 			implementation(libs.kotlinx.reflect)
 			implementation(libs.jetbrains.markdown)
+			implementation(libs.androidx.room.runtime)
+			implementation(libs.sqlite.bundled)
 		}
 		appleMain.dependencies {
 			implementation(libs.ktor.client.darwin)
@@ -133,7 +135,16 @@ android {
 dependencies {
 	implementation(libs.androidx.navigation.common.android)
 	debugImplementation(compose.uiTooling)
+	ksp(libs.androidx.room.compiler)
+	add("kspAndroid", libs.androidx.room.compiler)
+	add("kspIosSimulatorArm64", libs.androidx.room.compiler)
+	add("kspIosX64", libs.androidx.room.compiler)
+	add("kspIosArm64", libs.androidx.room.compiler)
 }
+room {
+	schemaDirectory("$projectDir/schemas")
+}
+
 
 compose.desktop {
 	application {

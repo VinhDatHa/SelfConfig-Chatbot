@@ -38,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -57,10 +58,8 @@ import io.curri.dictionary.chatbot.components.ui.ToastType
 import io.curri.dictionary.chatbot.components.ui.Toaster
 import io.curri.dictionary.chatbot.components.ui.WavyCircularProgressIndicator
 import io.curri.dictionary.chatbot.components.ui.toaster
-import io.curri.dictionary.chatbot.data.models.ModelFromProvider
 import io.curri.dictionary.chatbot.data.models.ModelType
 import io.curri.dictionary.chatbot.data.models.UIMessage
-import io.curri.dictionary.chatbot.utils.MockData
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -84,6 +83,11 @@ internal fun ChatPage(
 			toaster.show(error.message ?: "An error occurred", type = ToastType.ERROR)
 		}
 	}
+
+	LaunchedEffect(id) {
+		viewModel.loadConversation(id)
+	}
+
 	ModalNavigationDrawer(
 		drawerState = drawerState,
 		drawerContent = {
@@ -104,6 +108,7 @@ internal fun ChatPage(
 					drawerState,
 					onClickMenu = {
 						// Menu
+						viewModel.generateTitle()
 					},
 					onNewChat = {
 						onOpenNewChat()
@@ -148,7 +153,6 @@ internal fun ChatPage(
 					},
 					actions = {
 						Box(Modifier.weight(1f)) {
-							// ToDo select model view
 							ModelSelector(
 								modelId = settings.chatModelId,
 								providers = settings.providers,
@@ -288,8 +292,9 @@ private fun TopBar(
 			Text(
 				text = conversation.title.ifBlank { "New chat" },
 				maxLines = 1,
-				fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-				overflow = TextOverflow.Ellipsis
+				fontSize = MaterialTheme.typography.titleMedium.fontSize,
+				overflow = TextOverflow.Ellipsis,
+				fontWeight = FontWeight.Normal
 			)
 		}, actions = {
 			IconButton(

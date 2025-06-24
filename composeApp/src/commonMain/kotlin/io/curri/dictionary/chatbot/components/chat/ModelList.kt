@@ -50,7 +50,6 @@ fun ModelSelector(
 
 	val models = providers.findModelById(modelId)
 	var popup by remember { mutableStateOf(false) }
-	val mockModel = MockData.mockModelProvider
 	TextButton(
 		onClick = {
 			popup = true
@@ -58,7 +57,6 @@ fun ModelSelector(
 		modifier = modifier
 	) {
 		(models)?.let {
-			println("name: from Model List $it")
 			AutoAIIcon(
 				name = it.displayName,
 				modifier = Modifier

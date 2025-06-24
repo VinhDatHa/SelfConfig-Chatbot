@@ -1,8 +1,12 @@
 package io.curri.dictionary.chatbot.di
 
-import androidx.lifecycle.SavedStateHandle
+import io.curri.dictionary.chatbot.data.database.AppDatabase
+import io.curri.dictionary.chatbot.data.database.dao.ConversationDao
+import io.curri.dictionary.chatbot.data.repository.ConversationRepository
+import io.curri.dictionary.chatbot.data.repository.ConversationRepositoryImpl
 import io.curri.dictionary.chatbot.network.HttpClientFactory
 import io.curri.dictionary.chatbot.presentation.chat_page.ChatVM
+import io.curri.dictionary.chatbot.presentation.conversation_list.ListConversationVM
 import io.curri.dictionary.chatbot.presentation.settings.SettingViewModel
 import io.curri.dictionary.chatbot.providers.GenerationHandler
 import io.ktor.client.HttpClient
@@ -16,10 +20,15 @@ import org.koin.dsl.module
 val viewModelModule = module {
 	viewModelOf(::ChatVM)
 	viewModelOf(::SettingViewModel)
+	viewModelOf(::ListConversationVM)
 }
 
 val dataSourceModule = module {
 	single { GenerationHandler() }
+	single<ConversationDao> { get<AppDatabase>().getConversationDao() }
+	single<ConversationRepository> {
+		ConversationRepositoryImpl(get())
+	}
 }
 
 val networkModule = module {

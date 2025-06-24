@@ -96,38 +96,42 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 				val bodyJson = jsonConfig.parseToJsonElement(result).jsonObject
 				val id = bodyJson["id"]?.jsonPrimitive?.contentOrNull ?: ""
 				val model = bodyJson["model"]?.jsonPrimitive?.contentOrNull ?: ""
-				val choice = bodyJson["choices"]?.jsonArray?.get(0)?.jsonObject ?: error("choices is null")
+				val choice = bodyJson["choices"]?.jsonArray?.get(0)?.jsonObject
 
-				val message = choice["message"]?.jsonObject ?: throw Exception("message is null")
-				val finishReason = choice["finish_reason"]?.jsonPrimitive?.content ?: "unknown"
-				val errorMessage = bodyJson["error"]?.jsonObject
-				bodyJson["error"]?.jsonObject?.let { errorObject ->
-					val messageError = errorObject["message"]?.jsonPrimitive?.contentOrNull
+				if (choice != null) {
+					val message = choice["message"]?.jsonObject ?: throw Exception("message is null")
+					val finishReason = choice["finish_reason"]?.jsonPrimitive?.content ?: "unknown"
 					MessageChunk(
 						id = id, model = model, choices = listOf(
 							UIMessageChoice(
-								index = 0,
-								message = UIMessage(
-									role = MessageRole.SYSTEM,
-									parts = buildList {
-										UIMessagePart.Text(messageError ?: "Unknown error. Please try again later")
-									}
-								),
-								finishReason = null,
-								delta = null
+								index = 0, delta = null,
+								message = parseMessage(message),
+								finishReason = finishReason
 							)
 						)
 					)
-				}
-				MessageChunk(
-					id = id, model = model, choices = listOf(
-						UIMessageChoice(
-							index = 0, delta = null,
-							message = parseMessage(message),
-							finishReason = finishReason
+				} else {
+					bodyJson["error"]?.jsonObject?.let { errorObject ->
+						val messageError = errorObject["message"]?.jsonPrimitive?.contentOrNull
+						MessageChunk(
+							id = id, model = model, choices = listOf(
+								UIMessageChoice(
+									index = 0,
+									message = UIMessage(
+										role = MessageRole.SYSTEM,
+										parts = buildList {
+											UIMessagePart.Text(messageError ?: "Unknown error. Please try again later")
+										}
+									),
+									finishReason = null,
+									delta = null
+								)
+							)
 						)
-					)
-				)
+				}
+
+				}
+
 			}.onFailure {
 				println("Message error: $it")
 				throw Exception(it.message)

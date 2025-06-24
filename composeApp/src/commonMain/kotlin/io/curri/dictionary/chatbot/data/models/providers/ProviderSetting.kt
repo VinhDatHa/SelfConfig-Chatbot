@@ -18,7 +18,7 @@ sealed class ProviderSetting {
 	@Serializable
 	@SerialName("together_ai")
 	data class TogetherAiProvider(
-		override val id: String = "together_ai",
+		override val id: String = "togetherai",
 		override val enabled: Boolean = true,
 		override val name: String = "Together AI",
 		override val models: List<ModelFromProvider>,

@@ -263,11 +263,6 @@ fun ChatInput(
 					enabled = state.loading || !state.messageContent.isEmptyMessage()
 				) {
 					Icon(imageVector = if (state.loading) Lucide.X else Lucide.ArrowUp, stringResource(Res.string.send))
-//					if (state.loading) {
-//						Icon(Lucide.X, stringResource(Res.string.stop))
-//					} else {
-//						Icon(Lucide.ArrowUp, stringResource(Res.string.send))
-//					}
 				}
 			}
 
