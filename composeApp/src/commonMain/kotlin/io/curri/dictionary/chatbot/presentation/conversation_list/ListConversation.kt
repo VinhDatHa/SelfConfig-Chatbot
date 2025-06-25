@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -51,6 +52,7 @@ import com.composables.icons.lucide.NotebookPen
 import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Trash2
 import io.curri.dictionary.chatbot.components.ui.Conversation
+import io.curri.dictionary.chatbot.data.models.UIMessagePart
 import io.curri.dictionary.chatbot.presentation.common_state.ScreenState
 import io.curri.dictionary.chatbot.theme.extendColors
 import kotlinx.datetime.DateTimeUnit
@@ -186,9 +188,23 @@ private fun ConversationItem(
 		Row(
 			modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically
 		) {
-			Text(
-				text = conversation.title.ifBlank { "News" }, maxLines = 1, overflow = TextOverflow.Ellipsis
-			)
+			Column(
+				verticalArrangement = Arrangement.spacedBy(4.dp)
+			) {
+				Text(
+					text = conversation.title.ifBlank { "News" },
+					maxLines = 1,
+					style = MaterialTheme.typography.titleMedium,
+					overflow = TextOverflow.Ellipsis
+				)
+				Text(
+					text = conversation.messages.last().summaryAsText(),
+					style = MaterialTheme.typography.bodyMedium,
+					fontWeight = FontWeight.Light,
+					overflow = TextOverflow.Ellipsis,
+					maxLines = 1,
+				)
+			}
 			Spacer(Modifier.weight(1f))
 			AnimatedVisibility(loading) {
 				Box(modifier = Modifier.clip(CircleShape).background(MaterialTheme.extendColors.green6).size(4.dp).semantics {
