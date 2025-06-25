@@ -97,6 +97,10 @@ private fun AppRoute(navHostController: NavHostController) {
 							navHostController.navigate(Screen.SettingsScreen)
 						}, onOpenNewChat = {
 							navHostController.newChat(Uuid.random().toString())
+						}, onSwitchConversation = {
+							navHostController.navigate(Screen.ChatPage(it)) {
+								launchSingleTop = true
+							}
 						})
 				}
 

@@ -16,7 +16,7 @@ junit = "4.13.2"
 kotlin = "2.1.21"
 kotlinx-coroutines = "1.10.2"
 kotlinSerialization = "1.8.1"
-kotlinxDatetime = "0.6.2"
+kotlinxDatetime = "0.7.0"
 ksp = "2.1.20-2.0.1"
 lucide-icons = "1.0.0"
 ktor = "3.1.3"
@@ -27,7 +27,7 @@ koin = "4.0.0"
 kotlinx-collections-immutable = "0.3.8"
 datastore = "1.1.4"
 markdown = "0.7.3"
-room ="2.7.2"
+room = "2.7.2"
 sqlite = "2.4.0"
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -52,7 +52,8 @@ kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-s
 kotlinx-coroutineCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinSerialization" }
 kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinx-collections-immutable" }
-kotlinx-reflect = {module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin"}
+kotlinx-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
+kotlinx-date-time = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 #lucide icon
 lucide-icons = { group = "com.composables", name = "icons-lucide", version.ref = "lucide-icons" }
 

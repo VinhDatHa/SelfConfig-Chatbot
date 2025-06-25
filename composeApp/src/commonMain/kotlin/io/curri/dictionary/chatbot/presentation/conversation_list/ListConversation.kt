@@ -32,6 +32,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,46 +53,52 @@ import com.composables.icons.lucide.Trash2
 import io.curri.dictionary.chatbot.components.ui.Conversation
 import io.curri.dictionary.chatbot.presentation.common_state.ScreenState
 import io.curri.dictionary.chatbot.theme.extendColors
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
+import kotlinx.datetime.toLocalDateTime
 import org.koin.compose.viewmodel.koinViewModel
+import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
 @Composable
 internal fun ListConversationScreen(
-	viewModel: ListConversationVM = koinViewModel(),
-	openConversation: (Conversation) -> Unit
+	viewModel: ListConversationVM = koinViewModel(), openConversation: (Conversation) -> Unit
 ) {
+
+	val conversations by viewModel.conversation.collectAsStateWithLifecycle()
+	val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 
 	LaunchedEffect(Unit) {
 		viewModel.init()
 	}
 
-	val conversations by viewModel.conversation.collectAsStateWithLifecycle()
-	val screenState by viewModel.screenState.collectAsStateWithLifecycle()
-	Scaffold(
-		modifier = Modifier.background(MaterialTheme.colorScheme.background),
-		topBar = {
-			TopAppBar(
-				title = {
-					Text(
-						"Recent chat",
-						style = MaterialTheme.typography.titleLarge,
-					)
-				},
-				actions = {
-					IconButton(
-						onClick = {
-							openConversation(Conversation.empty())
-						}
-					) {
-						Icon(
-							imageVector = Lucide.NotebookPen,
-							contentDescription = "Create new chat"
-						)
-					}
-				}
-			)
+	val groupConversation by remember(conversations) {
+		derivedStateOf {
+			conversations.sortedByDescending { it.createAt }.groupBy { conversation ->
+				val instant = conversation.createAt
+				instant.toLocalDateTime(TimeZone.currentSystemDefault()).date
+			}
 		}
-	) {
+	}
+
+	Scaffold(modifier = Modifier.background(MaterialTheme.colorScheme.background), topBar = {
+		TopAppBar(title = {
+			Text(
+				"Recent chat",
+				style = MaterialTheme.typography.titleLarge,
+			)
+		}, actions = {
+			IconButton(onClick = {
+				openConversation(Conversation.empty())
+			}) {
+				Icon(
+					imageVector = Lucide.NotebookPen, contentDescription = "Create new chat"
+				)
+			}
+		})
+	}) {
 		Column(
 			modifier = Modifier.padding(it)
 		) {
@@ -110,17 +117,22 @@ internal fun ListConversationScreen(
 							)
 						}
 					}
-				}
+				} else {
+					groupConversation.forEach { (date, conversationsOfDate) ->
+						stickyHeader {
+							DateHeader(date)
+						}
+						items(conversationsOfDate, key = { conversation -> conversation.id }) { item ->
+							ConversationItem(conversation = item, selected = false, loading = screenState is ScreenState.Loading, onClick = {
+								openConversation(it)
+							}, onDelete = {
 
-				items(conversations, key = { conversation -> conversation.id }) { item ->
-					ConversationItem(conversation = item, selected = false, loading = screenState is ScreenState.Loading, onClick = {
-						openConversation(it)
-					}, onDelete = {
+							}, onRegenerateTitle = {
 
-					}, onRegenerateTitle = {
-
-					}, modifier = Modifier.animateItem()
-					)
+							}, modifier = Modifier.animateItem()
+							)
+						}
+					}
 				}
 			}
 		}
@@ -206,5 +218,26 @@ private fun ConversationItem(
 				})
 			}
 		}
+	}
+}
+
+@Composable
+internal fun DateHeader(date: LocalDate) {
+	val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+	val yesterday = today.minus(1, DateTimeUnit.DAY)
+
+	val displayText = when {
+		date == today -> "Today"
+		date == yesterday -> "Yesterday"
+		date.year == today.year -> "${date.month.name.lowercase().replaceFirstChar { it.uppercase() }} ${date.day}"
+		else -> "${date.month.name.lowercase().replaceFirstChar { it.uppercase() }} ${date.dayOfMonth}, ${date.year}"
+	}
+
+	Row(
+		modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerLow).padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically
+	) {
+		Text(
+			text = displayText, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary
+		)
 	}
 }

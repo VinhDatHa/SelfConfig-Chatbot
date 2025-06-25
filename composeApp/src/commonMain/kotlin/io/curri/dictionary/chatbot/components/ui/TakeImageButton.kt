@@ -83,7 +83,7 @@ internal fun TakeImageButton(onLoadImage: (String) -> Unit) {
 				) {
 					// Title
 					Text(
-						text = "Enter the address of image",
+						text = "Fetch Image",
 						style = MaterialTheme.typography.headlineSmall,
 						color = MaterialTheme.colorScheme.onSurface
 					)

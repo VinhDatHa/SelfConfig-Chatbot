@@ -27,12 +27,14 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
+import kotlin.uuid.Uuid
 
 class ChatVM(
 	savedStateHandle: SavedStateHandle,
@@ -42,7 +44,7 @@ class ChatVM(
 ) : ViewModel() {
 
 
-	private val _conversation = MutableStateFlow(Conversation.ofId(""))
+	private val _conversation = MutableStateFlow(Conversation.ofId(Uuid.random().toString()))
 	val conversation = _conversation.asStateFlow()
 
 	private val _conversationJob = MutableStateFlow<Job?>(null)
@@ -54,19 +56,21 @@ class ChatVM(
 		it.providers.findModelById(it.chatModelId)
 	}.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-	private val settingProviders = dataStore.settingsFlow.map {
-		it.providers
-	}.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+	private val _allConversations = MutableStateFlow(emptyList<Conversation>())
+	val allConversations: StateFlow<List<Conversation>>
+		get() = _allConversations.asStateFlow()
 
 	private val _errorFlow = MutableSharedFlow<Throwable>()
 	val errorFlow = _errorFlow.asSharedFlow()
 
 	fun loadConversation(id: String) {
 		viewModelScope.launch(Dispatchers.IO) {
-			conversationRepository.getConversationById(id)?.let { conversation ->
-				_conversation.update {
-					conversation
-				}
+			conversationRepository.getConversationById(id)?.let { current ->
+				_conversation.update { current }
+			}
+
+			conversationRepository.getAllConversation().collectLatest { history ->
+				_allConversations.update { history }
 			}
 		}
 	}

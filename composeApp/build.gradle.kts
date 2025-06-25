@@ -80,6 +80,7 @@ kotlin {
 			implementation(libs.jetbrains.markdown)
 			implementation(libs.androidx.room.runtime)
 			implementation(libs.sqlite.bundled)
+			implementation(libs.kotlinx.date.time)
 		}
 		appleMain.dependencies {
 			implementation(libs.ktor.client.darwin)

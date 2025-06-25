@@ -1,6 +1,5 @@
 package io.curri.dictionary.chatbot.presentation.conversation_list
 
-import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.curri.dictionary.chatbot.components.ui.Conversation
@@ -12,8 +11,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
 class ListConversationVM(
@@ -34,17 +31,9 @@ class ListConversationVM(
 
 	fun init() {
 		viewModelScope.launch(Dispatchers.IO) {
-			conversationRepo.getAllConversation()
-				.onStart {
-					_screenState.value = ScreenState.Loading
-				}.onCompletion {
-					_screenState.value = ScreenState.Idle
-				}.collectLatest { conversations ->
-					conversations.forEach {
-						println(it)
-					}
-					_conversations.value = conversations
-				}
+			conversationRepo.getAllConversation().collectLatest { conversations ->
+				_conversations.value = conversations
+			}
 		}
 	}
 
