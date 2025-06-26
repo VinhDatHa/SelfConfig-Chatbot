@@ -42,6 +42,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEach
@@ -58,7 +62,9 @@ import com.composables.icons.lucide.Volume2
 import com.composables.icons.lucide.Wrench
 import io.curri.dictionary.chatbot.components.ui.FormItem
 import io.curri.dictionary.chatbot.components.ui.ImagePreviewDialog
+import io.curri.dictionary.chatbot.components.ui.ToastType
 import io.curri.dictionary.chatbot.components.ui.richtext.MarkdownBlock
+import io.curri.dictionary.chatbot.components.ui.toaster
 import io.curri.dictionary.chatbot.data.models.MessageRole
 import io.curri.dictionary.chatbot.data.models.UIMessage
 import io.curri.dictionary.chatbot.data.models.UIMessagePart
@@ -233,7 +239,7 @@ private fun Actions(
 	onRegenerate: () -> Unit,
 	onEdit: () -> Unit
 ) {
-	val context = LocalPlatformContext.current
+	val clipboardManager = LocalClipboardManager.current
 	val reuseIconModifier = Modifier.clip(CircleShape).padding(8.dp).size(16.dp)
 	Row(
 		horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -246,6 +252,8 @@ private fun Actions(
 					indication = LocalIndication.current,
 					onClick = {
 						// ToDo copy message to clipboard
+						clipboardManager.setText(AnnotatedString(message.toText()))
+						toaster.show("Copied text to clipboard", ToastType.SUCCESS)
 					}
 				)
 		)

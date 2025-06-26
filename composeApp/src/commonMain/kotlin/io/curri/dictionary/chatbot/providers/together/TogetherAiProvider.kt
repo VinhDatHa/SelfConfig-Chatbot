@@ -48,7 +48,6 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 		val requestBuilder = HttpRequestBuilder().apply {
 			method = HttpMethod.Get
 			url("${providerSetting.baseUrl}/models")
-			println("Url ${providerSetting.baseUrl}/models")
 			headers {
 				bearerAuth(providerSetting.apiKey)
 				appendIfNameAbsent(HttpHeaders.ContentType, "application/json")
