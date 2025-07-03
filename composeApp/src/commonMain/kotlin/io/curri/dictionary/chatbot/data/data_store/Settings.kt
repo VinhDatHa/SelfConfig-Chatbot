@@ -45,11 +45,18 @@ internal val DEFAULT_PROVIDERS = listOf(
 		enabled = true,
 		models = emptyList()
 	),
-	ProviderSetting.GoogleProvider(
-		id = Uuid.parse("1eeea727-9ee5-4cae-93e6-6fb01a4d051e").toString(),
+	ProviderSetting.TogetherAiProvider(
+		id = Uuid.parse("6ab18148-c138-4394-a46f-1cd8c8ceaa6d").toString(),
 		name = "OpenRouter",
 		baseUrl = "https://openrouter.ai/api/v1",
 		apiKey = "",
-		enabled = false
+		enabled = false,
+		models = emptyList()
+	),
+	ProviderSetting.OpenAiProvider(
+		id = Uuid.parse("1eeea727-9ee5-4cae-93e6-6fb01a4d051e").toString(),
+		name = "OpenAI",
+		baseUrl = "https://api.openai.com/v1",
+		apiKey = "sk-",
 	)
 )

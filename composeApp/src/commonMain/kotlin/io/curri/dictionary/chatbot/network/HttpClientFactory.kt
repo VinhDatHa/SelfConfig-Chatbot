@@ -2,6 +2,7 @@ package io.curri.dictionary.chatbot.network
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
@@ -22,6 +23,10 @@ object HttpClientFactory {
 				socketTimeoutMillis = 30_000L
 				requestTimeoutMillis = 30_000L
 				connectTimeoutMillis = 30_000L
+			}
+			install(HttpRequestRetry) {
+				retryOnServerErrors(maxRetries = 5)
+				exponentialDelay()
 			}
 			install(Logging) {
 				logger = object : Logger {

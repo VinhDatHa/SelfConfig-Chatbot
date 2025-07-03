@@ -22,6 +22,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -64,7 +65,6 @@ internal fun ListConversationScreen(
 ) {
 
 	val conversations by viewModel.conversation.collectAsStateWithLifecycle()
-	val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 	val navController = LocalNavController.current
 
 	LaunchedEffect(Unit) {
@@ -97,14 +97,22 @@ internal fun ListConversationScreen(
 					contentDescription = "Search content"
 				)
 			}
-			IconButton(onClick = {
-				openConversation(Conversation.empty())
-			}) {
-				Icon(
-					imageVector = Lucide.NotebookPen, contentDescription = "Create new chat"
-				)
-			}
 		})
+	}, floatingActionButton = {
+		IconButton(
+			onClick = {
+				openConversation(Conversation.empty())
+//				navController.navigate(Screen.SettingsScreen)
+			},
+			colors = IconButtonDefaults.iconButtonColors().copy(
+				containerColor = MaterialTheme.colorScheme.secondaryContainer,
+				contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+			)
+		) {
+			Icon(
+				imageVector = Lucide.NotebookPen, contentDescription = "Create new chat"
+			)
+		}
 	}) { innerPadding ->
 		Column(
 			modifier = Modifier.padding(innerPadding)
@@ -232,11 +240,6 @@ internal fun ConversationItem(
 					)
 				}
 				Spacer(Modifier.weight(1f))
-//				AnimatedVisibility(loading) {
-//					Box(modifier = Modifier.clip(CircleShape).background(MaterialTheme.extendColors.green6).size(4.dp).semantics {
-//						contentDescription = "Loading"
-//					})
-//				}
 				DropdownMenu(
 					expanded = showDropdownMenu,
 					onDismissRequest = { showDropdownMenu = false },

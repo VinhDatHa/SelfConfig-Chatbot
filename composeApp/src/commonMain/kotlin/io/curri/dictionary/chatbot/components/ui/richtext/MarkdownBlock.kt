@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
@@ -40,10 +41,10 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import coil3.compose.AsyncImage
-import io.curri.dictionary.chatbot.components.ui.Table
 import io.curri.dictionary.chatbot.components.ui.TableCell
 import io.curri.dictionary.chatbot.components.ui.TableHeader
 import io.curri.dictionary.chatbot.components.ui.TableRow
+import io.curri.dictionary.chatbot.components.ui.table.TableNode
 import org.intellij.markdown.MarkdownElementTypes
 import org.intellij.markdown.MarkdownTokenTypes
 import org.intellij.markdown.ast.ASTNode
@@ -65,10 +66,8 @@ private val parser by lazy {
 private val INLINE_LATEX_REGEX = Regex("\\\\\\((.+?)\\\\\\)")
 private val BLOCK_LATEX_REGEX = Regex("\\\\\\[(.+?)\\\\\\]", RegexOption.MULTILINE)
 private val CITATION_REGEX = Regex("\\[citation:(\\w+)\\]")
+val THINKING_REGEX = Regex("<think>([\\s\\S]*?)(?:</think>|$)", RegexOption.MULTILINE)
 
-// Preprocess markdown content and convert inline formulas and block-level formulas to LaTeX format
-// Replace inline formulas \( ... \) to $ ... $
-// Replace block-level formulas \[ ... \] to $$ ... $$
 private fun preProcess(content: String): String {
 	var result = content.replace(INLINE_LATEX_REGEX) { matchResult ->
 		"$" + matchResult.groupValues[1] + "$"
@@ -76,6 +75,10 @@ private fun preProcess(content: String): String {
 
 	result = result.replace(CITATION_REGEX) { matchResult ->
 		"<citation>${matchResult.groupValues[1]}</citation>"
+	}
+
+	result = result.replace(THINKING_REGEX) { matchResult ->
+		matchResult.groupValues[1].lines().filter { it.isNotBlank() }.joinToString("\n") { ">$it" }
 	}
 	return result
 }
@@ -545,39 +548,7 @@ private fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Mo
 		}
 
 		GFMElementTypes.TABLE -> {
-			Table(modifier = modifier) {
-				node.children.fastForEach {
-					MarkdownNode(it, content)
-				}
-			}
-		}
-
-		GFMElementTypes.HEADER -> {
-			TableHeader(modifier = modifier) {
-				node.children.fastForEach {
-					if (it.type == GFMTokenTypes.CELL) {
-						TableCell {
-							MarkdownNode(it, content)
-						}
-					} else {
-						TableCell {
-							Text(content)
-						}
-					}
-				}
-			}
-		}
-
-		GFMElementTypes.ROW -> {
-			TableRow(modifier = modifier) {
-				node.children.fastForEach {
-					if (it.type == GFMTokenTypes.CELL) {
-						TableCell {
-							MarkdownNode(it, content)
-						}
-					}
-				}
-			}
+			TableNode(node, content, modifier)
 		}
 
 		MarkdownElementTypes.CODE_SPAN -> {
@@ -599,6 +570,14 @@ private fun MarkdownNode(node: ASTNode, content: String, modifier: Modifier = Mo
 
 		MarkdownTokenTypes.EOL -> {
 			Spacer(Modifier.fillMaxWidth())
+		}
+
+		MarkdownTokenTypes.HORIZONTAL_RULE -> {
+			HorizontalDivider(
+				modifier = Modifier.padding(vertical = 16.dp),
+				color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+				thickness = 0.5.dp
+			)
 		}
 
 		MarkdownElementTypes.IMAGE -> {

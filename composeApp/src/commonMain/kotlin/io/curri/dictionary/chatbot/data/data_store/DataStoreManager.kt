@@ -64,7 +64,7 @@ class DataStoreManager(
 				}
 			}
 			it.copy(
-				providers = providers
+				providers = providers.distinctBy { it.id }
 			)
 		}
 		.map { settings ->
@@ -76,7 +76,7 @@ class DataStoreManager(
 							models = provider.models.distinctBy { model -> model.modelId }
 						)
 
-						is ProviderSetting.GoogleProvider -> provider.copy(
+						is ProviderSetting.OpenAiProvider -> provider.copy(
 							models = provider.models.distinctBy { model -> model.modelId }
 						)
 					}

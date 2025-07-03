@@ -22,6 +22,7 @@ import dictionarychatbot.composeapp.generated.resources.ic_gemini
 import dictionarychatbot.composeapp.generated.resources.ic_gemma_color
 import dictionarychatbot.composeapp.generated.resources.ic_meta
 import dictionarychatbot.composeapp.generated.resources.ic_mistral
+import dictionarychatbot.composeapp.generated.resources.ic_openai
 import dictionarychatbot.composeapp.generated.resources.ic_openrouter
 import dictionarychatbot.composeapp.generated.resources.ic_qwen
 import dictionarychatbot.composeapp.generated.resources.together_color
@@ -64,7 +65,8 @@ fun AIIcon(
 		"meta-color", "meta" -> Res.drawable.ic_meta
 		"gemma-color", "gemma" -> Res.drawable.ic_gemma_color
 		"togetherai" -> Res.drawable.together_color
-		else -> Res.drawable.ic_gemma_color
+		"openai" -> Res.drawable.ic_openai
+		else -> null
 	}
 
 	if (modelIconResources != null) {

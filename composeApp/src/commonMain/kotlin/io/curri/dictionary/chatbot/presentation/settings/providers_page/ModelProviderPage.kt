@@ -115,8 +115,10 @@ internal fun SettingsProvider(
 			contentPadding = innerPadding + PaddingValues(16.dp),
 			verticalArrangement = Arrangement.spacedBy(16.dp),
 		) {
-			val providersSorted = settings.providers
-				.sortedByDescending { it.enabled }
+			val providersSorted = settings.providers.distinctBy { it.name }.sortedByDescending { it.enabled }
+			providersSorted.forEach {
+				println("$it")
+			}
 			items(items = providersSorted, key = { it.id }) { provider ->
 				ProviderItem(
 					modifier = Modifier.animateItem(),
@@ -161,7 +163,7 @@ private fun ProviderItem(
 			state
 		}
 	}
-
+	println("intenral: $internalProvider")
 	Card(
 		modifier = modifier,
 		colors = CardDefaults.cardColors(
@@ -209,25 +211,6 @@ private fun ProviderItem(
 				modifier = Modifier.fillMaxWidth(),
 				horizontalArrangement = Arrangement.SpaceAround,
 			) {
-				/* ToDo implement share later
-					val shareSheetState = rememberShareSheetState()
-					ShareSheet(shareSheetState)
-					TextButton(
-						onClick = {
-							shareSheetState.show(provider)
-						},
-					) {
-						Icon(
-							imageVector = Lucide.Share,
-							contentDescription = "Share",
-							modifier = Modifier
-								.padding(end = 8.dp)
-								.size(16.dp)
-						)
-						Text("分享")
-					}
-				 */
-
 				TextButton(
 					onClick = {
 						setExpand(ProviderExpandState.Models)
@@ -260,7 +243,7 @@ private fun ProviderItem(
 			}
 			when (expand) {
 				ProviderExpandState.Setting -> {
-					ProviderConfigure(
+					ProviderConfiguration(
 						providerSetting = internalProvider,
 						modifier = Modifier.padding(8.dp),
 						onEdit = { provider ->

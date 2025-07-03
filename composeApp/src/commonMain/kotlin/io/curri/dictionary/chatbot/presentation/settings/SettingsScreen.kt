@@ -24,7 +24,10 @@ import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.Boxes
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Palette
+import com.composables.icons.lucide.Share2
 import io.curri.dictionary.chatbot.app.Screen
+import io.curri.dictionary.chatbot.components.ui.ToastType
+import io.curri.dictionary.chatbot.components.ui.toaster
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -106,6 +109,27 @@ internal fun SettingsScreen(
 					onClick = {
 						// ToDo navigate to screen
 						navController.navigate(Screen.ProviderConfigPage)
+					}
+				)
+			}
+
+			stickyHeader {
+				Text(
+					text = "About",
+					modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+					style = MaterialTheme.typography.labelLarge,
+					color = MaterialTheme.colorScheme.primary
+				)
+			}
+
+			item {
+				SettingItem(
+					title = { Text("Share") },
+					description = { Text("Share app with friends") },
+					icon = { Icon(Lucide.Share2, "Share") },
+					onClick = {
+						// ToDo copy link into clipboard
+						toaster.show("Sharing link is copied into clipboard", ToastType.SUCCESS)
 					}
 				)
 			}

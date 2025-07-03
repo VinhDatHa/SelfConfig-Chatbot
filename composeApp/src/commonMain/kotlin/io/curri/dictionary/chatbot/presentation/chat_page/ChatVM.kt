@@ -207,7 +207,6 @@ class ChatVM(
 						messages = conversation.messages.subList(0, index + 1)
 					)
 				}.also {
-					// ToDo save the conversation into DB
 					saveConversation()
 				}
 			}
@@ -223,7 +222,6 @@ class ChatVM(
 				_conversation.updateAndGet {
 					it.copy(messages = it.messages.subList(0, index + 1))
 				}.also {
-					// ToDo save the conversation into DB
 					saveConversation()
 				}
 			}
@@ -255,12 +253,10 @@ class ChatVM(
 							"""
 							You are an assistant skilled in conversation. 
 							I will give you some dialogue content within content, and you need to summarize the user's conversation into a title within 15 characters.
-
 							1. The title's language must match the user's primary language
 							2. Do not use punctuation marks or other special symbols
 							3. Reply with the title only
 							4. Summarize in the language en
-
 							<content>
 							${_conversation.value.messages.joinToString("\n\n") { it.summaryAsText() }}
 							</content>

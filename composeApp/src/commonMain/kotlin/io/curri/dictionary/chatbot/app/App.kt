@@ -20,12 +20,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import coil3.EventListener
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.memory.MemoryCache
-import coil3.request.ErrorResult
-import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.mohamedrejeb.calf.picker.coil.KmpFileFetcher
 import io.curri.dictionary.chatbot.components.ui.context.LocalNavController

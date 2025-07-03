@@ -23,32 +23,95 @@ import com.composables.icons.lucide.Lucide
 import io.curri.dictionary.chatbot.data.models.providers.ProviderSetting
 
 @Composable
-fun ProviderConfigure(
+fun ProviderConfiguration(
 	modifier: Modifier = Modifier,
 	providerSetting: ProviderSetting,
 	onEdit: (provider: ProviderSetting) -> Unit
 ) {
-	when (providerSetting) {
-		is ProviderSetting.TogetherAiProvider -> {
-			ProviderConfigure(provider = providerSetting) {
-				println("After edit:$it")
-				onEdit(it)
-			}
+	if (providerSetting is ProviderSetting.TogetherAiProvider) {
+		TogetherAiConfigure(provider = providerSetting) {
+			onEdit(it)
 		}
+	}
 
-		else -> {
-			ProviderConfigure(providerSetting as ProviderSetting.TogetherAiProvider) {
-				onEdit(it)
-			}
+	if (providerSetting is ProviderSetting.OpenAiProvider) {
+		ProviderConfigureOpenAI(provider = providerSetting) {
+			onEdit(it)
 		}
 	}
 }
 
 
 @Composable
-private fun ProviderConfigure(
+private fun TogetherAiConfigure(
 	provider: ProviderSetting.TogetherAiProvider,
 	onConfig: (provider: ProviderSetting) -> Unit
+) {
+	var isShowingKey by remember { mutableStateOf(false) }
+	val visualTransformation by remember(isShowingKey) {
+		derivedStateOf {
+			if (isShowingKey) VisualTransformation.None else PasswordVisualTransformation()
+		}
+	}
+	Row(
+		verticalAlignment = Alignment.CenterVertically
+	) {
+		Text(
+			"Configs", modifier = Modifier.weight(1f)
+		)
+		Checkbox(
+			checked = provider.enabled,
+			onCheckedChange = {
+				onConfig(provider.copy(enabled = it))
+			}
+		)
+	}
+	OutlinedTextField(
+		value = provider.name,
+		readOnly = true,
+		onValueChange = {},
+		label = {
+			Text("Name")
+		},
+		modifier = Modifier.fillMaxWidth()
+	)
+
+	OutlinedTextField(
+		value = provider.baseUrl,
+		onValueChange = {
+			onConfig(provider.copy(baseUrl = it))
+		},
+		label = { Text("Base URL") },
+		modifier = Modifier.fillMaxWidth()
+	)
+
+	OutlinedTextField(
+		value = provider.apiKey,
+		onValueChange = {
+			onConfig(provider.copy(apiKey = it))
+		},
+		label = { Text("API Key") },
+		modifier = Modifier.fillMaxWidth(),
+		visualTransformation = visualTransformation,
+		trailingIcon = {
+			IconButton(
+				onClick = {
+					isShowingKey = !isShowingKey
+				}
+			) {
+				Icon(
+					imageVector = if (isShowingKey) Lucide.EyeOff else Lucide.Eye,
+					contentDescription = "Showing key"
+				)
+			}
+		}
+	)
+}
+
+@Composable
+private fun ProviderConfigureOpenAI(
+	provider: ProviderSetting.OpenAiProvider,
+	onConfig: (provider: ProviderSetting.OpenAiProvider) -> Unit
 ) {
 	var isShowingKey by remember { mutableStateOf(false) }
 	val visualTransformation by remember(isShowingKey) {

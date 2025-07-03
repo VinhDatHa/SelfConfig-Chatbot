@@ -1,4 +1,4 @@
-package io.curri.dictionary.chatbot.providers.together
+package io.curri.dictionary.chatbot.providers.openai
 
 import io.curri.dictionary.chatbot.data.models.MessageChunk
 import io.curri.dictionary.chatbot.data.models.MessageRole
@@ -41,12 +41,12 @@ import kotlinx.serialization.json.putJsonArray
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinComponent {
+object OpenAIProvider : Provider<ProviderSetting.OpenAiProvider>, KoinComponent {
 
 	private val client: HttpClient by inject()
 	private val fileManager: FileManagerUtils by inject()
 
-	override suspend fun listModels(providerSetting: ProviderSetting.TogetherAiProvider): List<ModelFromProvider> = withContext(Dispatchers.IO) {
+	override suspend fun listModels(providerSetting: ProviderSetting.OpenAiProvider): List<ModelFromProvider> = withContext(Dispatchers.IO) {
 		val requestBuilder = HttpRequestBuilder().apply {
 			method = HttpMethod.Get
 			url("${providerSetting.baseUrl}/models")
@@ -61,24 +61,17 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 			val result = if (response.status.isSuccess()) {
 				val rawResponse = response.body<List<ModelFromProvider>>()
 				val modelResult = rawResponse.filter { it.type == ModelType.CHAT }
-				println("Chat result: $modelResult")
 				modelResult.toImmutableList()
 			} else {
 				emptyList()
 			}
-			println("Result: ${result.size}")
 			result
 		}.onFailure {
 			it.printStackTrace()
 		}.getOrNull() ?: emptyList()
 	}
 
-
-	override suspend fun generateText(
-		providerSetting: ProviderSetting.TogetherAiProvider,
-		messages: List<UIMessage>,
-		params: TextGenerationParams
-	): MessageChunk {
+	override suspend fun generateText(providerSetting: ProviderSetting.OpenAiProvider, messages: List<UIMessage>, params: TextGenerationParams): MessageChunk {
 		return withContext(Dispatchers.IO) {
 			val requestBody = buildChatCompletionRequest(
 				messages, params, false
@@ -142,21 +135,22 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 		}
 	}
 
+	private fun buildChatCompletionRequest(
+		messages: List<UIMessage>,
+		params: TextGenerationParams,
+		stream: Boolean = false,
+	): JsonObject {
+		return buildJsonObject {
+			put("model", params.model.modelId)
+			put("messages", messages.toMessageJson())
+			put("temperature", params.temperature)
+			put("top_p", params.topP)
+			put("stream", stream)
+		}
+	}
+
 	private fun List<UIMessage>.toMessageJson() = buildJsonArray {
 		this@toMessageJson.filter { it.isValidToUpload() }.forEachIndexed { index, message ->
-			/* ToDo Handle role
-				 if (message.role == MessageRole.TOOL) {
-                    message.getToolResults().forEach { result ->
-                        add(buildJsonObject {
-                            put("role", "tool")
-                            put("name", result.toolName)
-                            put("tool_call_id", result.toolCallId)
-                            put("content", json.encodeToString(result.content))
-                        })
-                    }
-                    return@forEachIndexed
-                }
-				 */
 			add(buildJsonObject {
 				put("role", message.role.name.lowercase())
 
@@ -182,22 +176,6 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 												put("url", imageData)
 											})
 									})
-									/* ToDo build content for Image
-										add(buildJsonObject {
-											part.encodeBase64().onSuccess {
-												put("type", "image_url")
-												put("image_url", buildJsonObject {
-													put("url", it)
-												})
-											}.onFailure {
-												it.printStackTrace()
-												println("encode image failed: ${part.url}")
-
-												put("type", "text")
-												put("text", "")
-											}
-										})
-										 */
 								}
 
 								else -> {
@@ -216,87 +194,14 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 			jsonObject["role"]?.jsonPrimitive?.contentOrNull?.uppercase() ?: "ASSISTANT"
 		)
 
-		// Maybe it supports output content in other modes? Only text is supported for now.
 		val content = jsonObject["content"]?.jsonPrimitive?.contentOrNull ?: ""
-//		val reasoning = jsonObject["reasoning_content"] ?: jsonObject["reasoning"]
-//		val toolCalls = jsonObject["tool_calls"] as? JsonArray ?: JsonArray(emptyList())
 
 		return UIMessage(
 			role = role,
 			parts = buildList {
-				/*
-				if (reasoning?.jsonPrimitive?.contentOrNull != null) {
-					add(
-						UIMessagePart.Reasoning(
-							reasoning = reasoning.jsonPrimitive.contentOrNull ?: ""
-						)
-					)
-				}
-				toolCalls.forEach { toolCalls ->
-					val type = toolCalls.jsonObject["type"]?.jsonPrimitive?.contentOrNull
-					if (type != null && type != "function") error("tool call type not supported: $type")
-					val toolCallId = toolCalls.jsonObject["id"]?.jsonPrimitive?.contentOrNull
-					val toolName =
-						toolCalls.jsonObject["function"]?.jsonObject?.get("name")?.jsonPrimitive?.contentOrNull
-					val arguments =
-						toolCalls.jsonObject["function"]?.jsonObject?.get("arguments")?.jsonPrimitive?.contentOrNull
-					add(
-						UIMessagePart.ToolCall(
-							toolCallId = toolCallId ?: "",
-							toolName = toolName ?: "",
-							arguments = arguments ?: ""
-						)
-					)
-				}
-				 */
-
 				add(UIMessagePart.Text(content))
 			},
-			/* ToDo Annotations
-			annotations = parseAnnotations(
-				jsonObject["annotations"]?.jsonArray ?: JsonArray(
-					emptyList()
-				)
-			),
-			 */
-
 		)
 	}
 
-	private fun buildChatCompletionRequest(
-		messages: List<UIMessage>,
-		params: TextGenerationParams,
-		stream: Boolean = false,
-	): JsonObject {
-		return buildJsonObject {
-			put("model", params.model.modelId)
-			put("messages", messages.toMessageJson())
-			put("temperature", params.temperature)
-			put("top_p", params.topP)
-			put("stream", stream)
-			/* ToDo Tools and reasoning
-						if (params.model.abilities.contains(ModelAbility.TOOL) && params.tools.isNotEmpty()) {
-				putJsonArray("tools") {
-					params.tools.forEach { tool ->
-						add(buildJsonObject {
-							put("type", "function")
-							put("function", buildJsonObject {
-								put("name", tool.name)
-								put("description", tool.description)
-								put(
-									"parameters",
-									json.encodeToJsonElement(
-										Schema.serializer(),
-										tool.parameters
-									)
-								)
-							})
-						})
-					}
-				}
-			}
-			 */
-
-		}
-	}
 }

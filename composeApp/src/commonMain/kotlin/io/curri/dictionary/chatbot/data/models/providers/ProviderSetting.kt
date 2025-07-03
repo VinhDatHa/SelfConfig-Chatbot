@@ -13,7 +13,12 @@ sealed class ProviderSetting {
 	abstract fun addModel(model: ModelFromProvider): ProviderSetting
 	abstract fun editModel(model: ModelFromProvider): ProviderSetting
 	abstract fun delModel(model: ModelFromProvider): ProviderSetting
-
+	abstract fun copyProvider(
+		id: String = this.id,
+		enabled: Boolean = this.enabled,
+		name: String = this.name,
+		models: List<ModelFromProvider> = this.models
+	): ProviderSetting
 
 	@Serializable
 	@SerialName("together_ai")
@@ -38,17 +43,58 @@ sealed class ProviderSetting {
 		override fun delModel(model: ModelFromProvider): ProviderSetting {
 			return copy(models = models.filter { it.modelId != model.modelId })
 		}
+
+		override fun copyProvider(id: String, enabled: Boolean, name: String, models: List<ModelFromProvider>): ProviderSetting {
+			return this.copy(
+				id = id,
+				enabled = enabled,
+				name = name,
+				models = models
+			)
+		}
 	}
 
+//	@Serializable
+//	@SerialName("google")
+//	data class GoogleProvider(
+//		override var id: String = "Google",
+//		override var enabled: Boolean = true,
+//		override var name: String = "Google",
+//		override var models: List<ModelFromProvider> = emptyList(),
+//		var apiKey: String = "",
+//		var baseUrl: String = "",
+//	) : ProviderSetting() {
+//		override fun addModel(model: ModelFromProvider): ProviderSetting {
+//			return copy(models = models + model)
+//		}
+//
+//		override fun editModel(model: ModelFromProvider): ProviderSetting {
+//			return copy(models = models.map { if (it.modelId == model.modelId) model else it })
+//		}
+//
+//		override fun delModel(model: ModelFromProvider): ProviderSetting {
+//			return copy(models = models.filter { it.modelId != model.modelId })
+//		}
+//
+//		override fun copyProvider(id: String, enabled: Boolean, name: String, models: List<ModelFromProvider>): ProviderSetting {
+//			return this.copy(
+//				id = id,
+//				enabled = enabled,
+//				name = name,
+//				models = models
+//			)
+//		}
+//	}
+
 	@Serializable
-	@SerialName("google")
-	data class GoogleProvider(
-		override var id: String = "Google",
+	@SerialName("openai")
+	data class OpenAiProvider(
+		override var id: String = "OpenAI",
 		override var enabled: Boolean = true,
-		override var name: String = "Google",
+		override var name: String = "OpenAI",
 		override var models: List<ModelFromProvider> = emptyList(),
-		var apiKey: String = "",
-		var baseUrl: String = "",
+		var apiKey: String = "sk-",
+		var baseUrl: String = "https://api.openai.com/v1",
 	) : ProviderSetting() {
 		override fun addModel(model: ModelFromProvider): ProviderSetting {
 			return copy(models = models + model)
@@ -61,13 +107,24 @@ sealed class ProviderSetting {
 		override fun delModel(model: ModelFromProvider): ProviderSetting {
 			return copy(models = models.filter { it.modelId != model.modelId })
 		}
+
+		override fun copyProvider(id: String, enabled: Boolean, name: String, models: List<ModelFromProvider>): ProviderSetting {
+			return this.copy(
+				id = id,
+				enabled = enabled,
+				name = name,
+				models = models
+			)
+		}
+
 	}
 
 	companion object {
 		val Types by lazy {
 			listOf(
 				TogetherAiProvider::class,
-				GoogleProvider::class
+				OpenAiProvider::class,
+//				GoogleProvider::class
 			)
 		}
 	}
