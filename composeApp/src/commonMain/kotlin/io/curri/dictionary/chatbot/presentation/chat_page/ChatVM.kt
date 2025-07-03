@@ -14,6 +14,9 @@ import io.curri.dictionary.chatbot.data.models.UIMessage
 import io.curri.dictionary.chatbot.data.models.UIMessagePart
 import io.curri.dictionary.chatbot.data.models.isEmptyMessage
 import io.curri.dictionary.chatbot.data.repository.ConversationRepository
+import io.curri.dictionary.chatbot.file_manager.FileManagerUtils
+import io.curri.dictionary.chatbot.network.search.BingSearchService
+import io.curri.dictionary.chatbot.network.search.SearchCommonOptions
 import io.curri.dictionary.chatbot.providers.GenerationHandler
 import io.curri.dictionary.chatbot.providers.ProviderManager
 import io.curri.dictionary.chatbot.providers.TextGenerationParams
@@ -33,6 +36,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
@@ -40,9 +44,9 @@ class ChatVM(
 	savedStateHandle: SavedStateHandle,
 	private val dataStore: DataStoreManager,
 	private val generationHandler: GenerationHandler,
-	private val conversationRepository: ConversationRepository
+	private val conversationRepository: ConversationRepository,
+	private val fileManagerUtils: FileManagerUtils
 ) : ViewModel() {
-
 
 	private val _conversation = MutableStateFlow(Conversation.ofId(Uuid.random().toString()))
 	val conversation = _conversation.asStateFlow()
@@ -86,6 +90,7 @@ class ChatVM(
 					), updateAt = Clock.System.now()
 				)
 			}
+//			handleWebSearch(content)
 			handleMessageComplete()
 		}
 		_conversationJob.update { job }
@@ -101,6 +106,30 @@ class ChatVM(
 					chatModelId = modelFromProvider.modelId
 				)
 			)
+		}
+	}
+
+	private suspend fun handleWebSearch() {
+		val search = BingSearchService
+		withContext(Dispatchers.IO) {
+			val result = search.search(
+				query = _conversation.value.messages.last().toText(),
+				options = SearchCommonOptions(5)
+			)
+			result.onSuccess { searchResult ->
+				_conversation.update { current ->
+					current.copy(
+						messages = current.messages + UIMessage(
+							role = MessageRole.ASSISTANT,
+							parts = listOf(
+								UIMessagePart.Search(searchResult)
+							)
+						)
+					)
+				}
+			}.onFailure {
+				it.printStackTrace()
+			}
 		}
 	}
 
@@ -131,7 +160,9 @@ class ChatVM(
 		}
 		runCatching {
 			generationHandler.streamText(
-				settings.value, model = model, messages = _conversation.value.messages
+				settings = settings.value,
+				model = model,
+				messages = _conversation.value.messages
 			).collect {
 				updateConversation(conversation.value.copy(messages = it))
 			}
@@ -146,9 +177,24 @@ class ChatVM(
 		}
 	}
 
+	private fun checkFileDelete(newConversation: Conversation, oldConversation: Conversation) {
+		val newFiles = newConversation.files
+		val oldFiles = oldConversation.files
+		val deletedFiles = oldFiles.filter { file ->
+			newFiles.none { it == file }
+		}
+		if (deletedFiles.isNotEmpty()) {
+			fileManagerUtils.deleteFile(deletedFiles)
+		}
+	}
+
+	fun deleteImage(uris: List<String>) {
+		fileManagerUtils.deleteFile(uris)
+	}
 
 	private fun updateConversation(conversation: Conversation) {
 		if (conversation.id != _conversation.value.id) return
+		checkFileDelete(conversation, _conversation.value)
 		_conversation.update { conversation }
 	}
 

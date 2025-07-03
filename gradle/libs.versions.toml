@@ -29,6 +29,10 @@ datastore = "1.1.4"
 markdown = "0.7.3"
 room = "2.7.0"
 sqlite = "2.4.0"
+peekaboo = "0.5.2"
+ksoup = "0.2.4"
+calf-file-picker = "0.8.0"
+calf-coil = "0.5.1"
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
@@ -91,6 +95,16 @@ jetbrains-markdown = { group = "org.jetbrains", name = "markdown", version.ref =
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
+
+#peekaboo
+peekaboo-ui = { module = "io.github.onseok:peekaboo-ui", version.ref = "peekaboo" }
+peekaboo-image-picker = { module = "io.github.onseok:peekaboo-image-picker", version.ref = "peekaboo" }
+# Calf
+calf-picker = { group = "com.mohamedrejeb.calf", name = "calf-file-picker", version.ref = "calf-file-picker" }
+calf-coil = { group = "com.mohamedrejeb.calf", name = "calf-file-picker-coil", version.ref = "calf-coil" }
+#jsoup
+ksoup-core = { group = "com.fleeksoft.ksoup", name = "ksoup", version.ref = "ksoup" }
+ksoup-kotlin = { group = "com.fleeksoft.ksoup", name = "ksoup-kotlinx", version.ref = "ksoup" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.curri.dictionary.chatbot.components.ui.Conversation
 import io.curri.dictionary.chatbot.data.repository.ConversationRepository
+import io.curri.dictionary.chatbot.file_manager.FileManagerUtils
 import io.curri.dictionary.chatbot.presentation.common_state.ScreenState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -14,7 +15,8 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class ListConversationVM(
-	private val conversationRepo: ConversationRepository
+	private val conversationRepo: ConversationRepository,
+	private val fileManagerUtils: FileManagerUtils
 ) : ViewModel() {
 
 	private val _conversations = MutableStateFlow<List<Conversation>>(emptyList())
@@ -25,10 +27,6 @@ class ListConversationVM(
 	val screenState: StateFlow<ScreenState>
 		get() = _screenState.asStateFlow()
 
-	private val _searchQuery = MutableStateFlow<String>("")
-	val searchQuery: StateFlow<String>
-		get() = _searchQuery.asStateFlow()
-
 	fun init() {
 		viewModelScope.launch(Dispatchers.IO) {
 			conversationRepo.getAllConversation().collectLatest { conversations ->
@@ -37,9 +35,10 @@ class ListConversationVM(
 		}
 	}
 
-	fun performSearch(input: String) {
-
+	fun delete(conversation: Conversation) {
+		viewModelScope.launch {
+			conversationRepo.deleteConversation(conversation)
+			fileManagerUtils.deleteFile(conversation.files)
+		}
 	}
-
-
 }

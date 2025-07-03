@@ -10,7 +10,6 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -21,10 +20,19 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import coil3.EventListener
+import coil3.ImageLoader
+import coil3.compose.setSingletonImageLoaderFactory
+import coil3.memory.MemoryCache
+import coil3.request.ErrorResult
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import com.mohamedrejeb.calf.picker.coil.KmpFileFetcher
 import io.curri.dictionary.chatbot.components.ui.context.LocalNavController
 import io.curri.dictionary.chatbot.components.ui.context.LocalSharedTransitionScope
 import io.curri.dictionary.chatbot.presentation.chat_page.ChatPage
 import io.curri.dictionary.chatbot.presentation.conversation_list.ListConversationScreen
+import io.curri.dictionary.chatbot.presentation.search_page.SearchPage
 import io.curri.dictionary.chatbot.presentation.settings.SettingsScreen
 import io.curri.dictionary.chatbot.presentation.settings.providers_page.SettingsProvider
 import io.curri.dictionary.chatbot.theme.AppTheme
@@ -43,11 +51,23 @@ fun App() {
 			val navController = rememberNavController()
 			Column(
 				modifier = Modifier
-					.systemBarsPadding()
 					.fillMaxSize().background(MaterialTheme.colorScheme.background),
 				horizontalAlignment = Alignment.CenterHorizontally,
 			) {
 				AppRoute(navController)
+			}
+			setSingletonImageLoaderFactory { context ->
+				ImageLoader.Builder(context)
+					.crossfade(true)
+					.memoryCache {
+						MemoryCache.Builder()
+							.maxSizePercent(context, 0.25)
+							.build()
+					}
+					.components {
+						add(KmpFileFetcher.Factory())
+					}
+					.build()
 			}
 		}
 	}
@@ -93,21 +113,14 @@ private fun AppRoute(navHostController: NavHostController) {
 				) {
 					val id = it.toRoute<Screen.ChatPage>().id
 					ChatPage(id = id,
-						onOpenSetting = {
-							navHostController.navigate(Screen.SettingsScreen)
-						}, onOpenNewChat = {
+						onOpenNewChat = {
 							navHostController.newChat(Uuid.random().toString())
-						}, onSwitchConversation = {
-							navHostController.navigate(Screen.ChatPage(it)) {
-								launchSingleTop = true
-							}
 						})
 				}
 
 				composable<Screen.SettingsScreen> {
 					SettingsScreen(
 						onBackAction = {
-//						navHostController.navigate(Screen.ChatPage("TOOL"))
 							navHostController.popBackStack()
 						},
 						navController = navHostController
@@ -123,6 +136,10 @@ private fun AppRoute(navHostController: NavHostController) {
 					SettingsProvider() {
 						navHostController.popBackStack()
 					}
+				}
+
+				composable<Screen.SearchScreen> {
+					SearchPage()
 				}
 			}
 		}
@@ -144,4 +161,7 @@ sealed interface Screen {
 
 	@Serializable
 	data object ProviderConfigPage : Screen
+
+	@Serializable
+	data object SearchScreen : Screen
 }

@@ -27,6 +27,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -42,23 +43,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.ClipEntry
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
+import coil3.PlatformContext
 import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
 import coil3.compose.LocalPlatformContext
+import coil3.request.ImageRequest
 import com.composables.icons.lucide.BookDashed
 import com.composables.icons.lucide.BookHeart
 import com.composables.icons.lucide.Copy
+import com.composables.icons.lucide.Loader
+import com.composables.icons.lucide.LoaderCircle
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.RefreshCw
-import com.composables.icons.lucide.Volume2
 import com.composables.icons.lucide.Wrench
 import io.curri.dictionary.chatbot.components.ui.FormItem
 import io.curri.dictionary.chatbot.components.ui.ImagePreviewDialog
@@ -68,6 +71,10 @@ import io.curri.dictionary.chatbot.components.ui.toaster
 import io.curri.dictionary.chatbot.data.models.MessageRole
 import io.curri.dictionary.chatbot.data.models.UIMessage
 import io.curri.dictionary.chatbot.data.models.UIMessagePart
+import io.ktor.http.parseUrl
+import io.ktor.util.decodeBase64Bytes
+import io.ktor.util.decodeBase64String
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun ChatMessage(
@@ -102,10 +109,10 @@ private fun MessagePartsBlock(
 	parts: List<UIMessagePart>,
 //	annotations: List<UIMessageAnnotation>,
 ) {
-	val interactionSource = remember { MutableInteractionSource() }
-	val contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
 	val context = LocalPlatformContext.current
-
+	parts.filterIsInstance<UIMessagePart.Search>().fastForEach { search ->
+		SearchResultList(result = search.searchResult)
+	}
 	// Raw Text
 	parts.filterIsInstance<UIMessagePart.Text>().fastForEach { part ->
 		SelectionContainer {
@@ -142,7 +149,10 @@ private fun MessagePartsBlock(
 								},
 						) {
 							AsyncImage(
-								model = image.url,
+								model = ImageRequest.Builder(context = context).data(image.url).build(),
+								onState = {
+									println("State: $it")
+								},
 								contentDescription = "image",
 								modifier = Modifier
 									.clip(RoundedCornerShape(8.dp))
@@ -229,7 +239,7 @@ private fun MessagePartsBlock(
 		}
 	}
 
-	// ToDo Implement the image and annotation
+	// ToDo annotation
 }
 
 
@@ -251,7 +261,6 @@ private fun Actions(
 					interactionSource = remember { MutableInteractionSource() },
 					indication = LocalIndication.current,
 					onClick = {
-						// ToDo copy message to clipboard
 						clipboardManager.setText(AnnotatedString(message.toText()))
 						toaster.show("Copied text to clipboard", ToastType.SUCCESS)
 					}
@@ -282,20 +291,20 @@ private fun Actions(
 			)
 		}
 
-		if (message.role == MessageRole.ASSISTANT) {
-			// ToDo Implement tts service
-//			val tts = LocalTTSService.current
-			Icon(
-				Lucide.Volume2, "TTS", modifier = reuseIconModifier
-					.clickable(
-						interactionSource = remember { MutableInteractionSource() },
-						indication = LocalIndication.current,
-						onClick = {
+//		if (message.role == MessageRole.ASSISTANT) {
+//			// ToDo Implement tts service
+//
+//			Icon(
+//				Lucide.Volume2, "TTS", modifier = reuseIconModifier
+//					.clickable(
+//						interactionSource = remember { MutableInteractionSource() },
+//						indication = LocalIndication.current,
+//						onClick = {
 //							tts?.speak(message.toText(), TextToSpeech.QUEUE_FLUSH, null, null)
-							// ToDo tts?.speak
-						}
-					)
-			)
-		}
+//							// ToDo tts?.speak
+//						}
+//					)
+//			)
+//		}
 	}
 }

@@ -5,6 +5,7 @@ import io.curri.dictionary.chatbot.data.data_store.setupDataStore
 import io.curri.dictionary.chatbot.data.database.AppDatabase
 import io.curri.dictionary.chatbot.data.getDatabaseBuilder
 import io.curri.dictionary.chatbot.data.database.initAppDatabase
+import io.curri.dictionary.chatbot.file_manager.FileManagerUtils
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.darwin.Darwin
 import org.koin.core.module.Module
@@ -18,6 +19,7 @@ actual val platformModule: Module
 			val builder = getDatabaseBuilder()
 			initAppDatabase(builder)
 		}
+		single { FileManagerUtils() }
 	}
 
 actual fun createHttpClientEngine(): HttpClientEngine = Darwin.create()

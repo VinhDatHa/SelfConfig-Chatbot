@@ -26,14 +26,11 @@ data class Conversation(
 	@Serializable(with = InstantSerializer::class)
 	val updateAt: Instant = Clock.System.now()
 ) {
-	// ToDo processImage later
 
-	/*
-		val files: List<Uri>
-			get() = messages.flatMap { it.parts }
-					.filterIsInstance<UIMessagePart.Image>()
-					.map { it.url.toUri() }
-	 */
+	val files: List<String>
+		get() = messages.flatMap { it.parts }
+			.filterIsInstance<UIMessagePart.Image>()
+			.map { it.url }
 
 	companion object {
 		fun empty() = Conversation(messages = emptyList())

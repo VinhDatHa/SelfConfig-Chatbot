@@ -81,6 +81,12 @@ kotlin {
 			implementation(libs.androidx.room.runtime)
 			implementation(libs.sqlite.bundled)
 			implementation(libs.kotlinx.date.time)
+			implementation(libs.peekaboo.ui)
+//			implementation(libs.peekaboo.image.picker)
+			implementation(libs.ksoup.core)
+			implementation(libs.ksoup.kotlin)
+			implementation(libs.calf.picker)
+			implementation(libs.calf.coil)
 		}
 		appleMain.dependencies {
 			implementation(libs.ktor.client.darwin)

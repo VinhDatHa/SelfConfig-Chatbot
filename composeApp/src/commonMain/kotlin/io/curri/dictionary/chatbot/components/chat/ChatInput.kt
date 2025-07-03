@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,9 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
-import coil3.Uri
 import coil3.compose.AsyncImage
-import coil3.toUri
 import com.composables.icons.lucide.ArrowUp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
@@ -51,9 +50,13 @@ import dictionarychatbot.composeapp.generated.resources.chat_input_placeholder
 import dictionarychatbot.composeapp.generated.resources.editing
 import dictionarychatbot.composeapp.generated.resources.more_options
 import dictionarychatbot.composeapp.generated.resources.send
-import io.curri.dictionary.chatbot.components.ui.TakeImageButton
+import io.curri.dictionary.chatbot.components.ui.FetchImageButton
+import io.curri.dictionary.chatbot.components.ui.PickImageButton
 import io.curri.dictionary.chatbot.data.models.UIMessagePart
 import io.curri.dictionary.chatbot.data.models.isEmptyMessage
+import io.curri.dictionary.chatbot.file_manager.rememberShareManager
+import io.ktor.http.parseUrl
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 class ChatInputState {
@@ -90,7 +93,7 @@ class ChatInputState {
 	fun addImages(urisInString: List<String>) {
 		val newMessage = messageContent.toMutableList()
 		urisInString.forEach { uri ->
-			newMessage.add(UIMessagePart.Image(uri))
+			newMessage.add(UIMessagePart.Image(uri, isLocal = parseUrl(uri) == null))
 		}
 		messageContent = newMessage
 	}
@@ -117,15 +120,17 @@ fun ChatInput(
 	modifier: Modifier = Modifier,
 	onCancelClick: () -> Unit,
 	onSendClick: () -> Unit,
-	onImageDelete: (List<Uri>) -> Unit = {},
+	onImageDelete: (List<String>) -> Unit = {},
 	actions: @Composable RowScope.() -> Unit = {},
 ) {
 	val text =
 		state.messageContent.filterIsInstance<UIMessagePart.Text>().firstOrNull()
 			?: UIMessagePart.Text("")
 
+	val shareFileManager = rememberShareManager()
 	var expand by remember { mutableStateOf(false) }
 	val keyboardController = LocalSoftwareKeyboardController.current
+	val scope = rememberCoroutineScope()
 
 	fun sendMessage() {
 		keyboardController?.hide()
@@ -169,7 +174,7 @@ fun ChatInput(
 									state.messageContent =
 										state.messageContent.filterNot { it == image }
 									// Delete image
-									onImageDelete(listOf(image.url.toUri()))
+									onImageDelete(listOf(image.url))
 								}
 								.align(Alignment.TopEnd)
 								.background(MaterialTheme.colorScheme.secondary),
@@ -280,15 +285,20 @@ fun ChatInput(
 						horizontalArrangement = Arrangement.spacedBy(4.dp),
 					) {
 						// ToDo pick media later
-						TakeImageButton {
+						FetchImageButton {
 							state.addImages(listOf(it))
 							expand = false
 						}
-//						TakePicButton {
-//							state.addImages(it)
-//							expand = false
-//						}
-//
+						// ToDo
+						PickImageButton { path ->
+							scope.launch {
+								shareFileManager.saveImageToFile(path).let { filePath ->
+									state.addImages(listOf(filePath))
+								}
+							}
+							expand = false
+						}
+
 //						ImagePickButton {
 //							state.addImages(it)
 //							expand = false

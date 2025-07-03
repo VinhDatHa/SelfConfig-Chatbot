@@ -1,5 +1,6 @@
 package io.curri.dictionary.chatbot.data.models
 
+import io.curri.dictionary.chatbot.network.search.SearchResult
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlin.uuid.ExperimentalUuidApi
@@ -29,6 +30,22 @@ data class UIMessage(
 						} else {
 							acc + UIMessagePart.Text(deltaPart.text)
 						}
+					}
+
+					is UIMessagePart.Search -> {
+						val existingSearchPart =
+							acc.find { it is UIMessagePart.Search } as? UIMessagePart.Search
+						existingSearchPart?.let {
+							acc.map { part ->
+								if (part is UIMessagePart.Search) {
+									UIMessagePart.Search(
+										existingSearchPart.searchResult.copy(
+											items = existingSearchPart.searchResult.items + deltaPart.searchResult.items
+										)
+									)
+								} else part
+							}
+						} ?: (acc + UIMessagePart.Search(deltaPart.searchResult))
 					}
 
 					else -> {
@@ -97,7 +114,10 @@ sealed class UIMessagePart {
 	data class Text(val text: String) : UIMessagePart()
 
 	@Serializable
-	data class Image(val url: String) : UIMessagePart()
+	data class Image(val url: String, val isLocal: Boolean = false) : UIMessagePart()
+
+	@Serializable
+	data class Search(val searchResult: SearchResult) : UIMessagePart()
 
 	@Serializable
 	data class ToolResult(

@@ -49,12 +49,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.ChevronDown
-import com.composables.icons.lucide.History
 import com.composables.icons.lucide.ListTree
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Menu
 import com.composables.icons.lucide.MessageCirclePlus
 import com.composables.icons.lucide.Settings
+import io.curri.dictionary.chatbot.app.Screen
 import io.curri.dictionary.chatbot.components.chat.ChatInput
 import io.curri.dictionary.chatbot.components.chat.ChatMessage
 import io.curri.dictionary.chatbot.components.chat.ModelSelector
@@ -63,6 +63,7 @@ import io.curri.dictionary.chatbot.components.ui.Conversation
 import io.curri.dictionary.chatbot.components.ui.ToastType
 import io.curri.dictionary.chatbot.components.ui.Toaster
 import io.curri.dictionary.chatbot.components.ui.WavyCircularProgressIndicator
+import io.curri.dictionary.chatbot.components.ui.context.LocalNavController
 import io.curri.dictionary.chatbot.components.ui.toaster
 import io.curri.dictionary.chatbot.data.models.ModelType
 import io.curri.dictionary.chatbot.data.models.UIMessage
@@ -76,9 +77,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 internal fun ChatPage(
 	id: String, viewModel: ChatVM = koinViewModel(),
-	onOpenSetting: () -> Unit,
-	onOpenNewChat: () -> Unit,
-	onSwitchConversation: (String) -> Unit
+	onOpenNewChat: () -> Unit
 ) {
 	val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 	val conversation by viewModel.conversation.collectAsStateWithLifecycle()
@@ -87,6 +86,7 @@ internal fun ChatPage(
 	val chatModel by viewModel.currentModelChat.collectAsStateWithLifecycle()
 	val history by viewModel.allConversations.collectAsStateWithLifecycle()
 
+	val navController = LocalNavController.current
 	LaunchedEffect(Unit) {
 		viewModel.errorFlow.collect { error ->
 			toaster.show(error.message ?: "An error occurred", type = ToastType.ERROR)
@@ -101,12 +101,8 @@ internal fun ChatPage(
 		drawerContent = {
 			DrawerContent(
 				current = conversation,
-				conversations = history,
-				{ onOpenSetting() },
-				onOpenConversation = {
-					onSwitchConversation(it.id)
-				}
-			)
+				conversations = history
+			) { navController.navigate(Screen.SettingsScreen) }
 		}) {
 		val inputState = rememberChatInputState()
 		Scaffold(topBar = {
@@ -140,7 +136,7 @@ internal fun ChatPage(
 				}
 				inputState.clearInput()
 			}, onImageDelete = {
-				// ToDo image delete later
+				viewModel.deleteImage(it)
 			}, actions = {
 				Box(Modifier.weight(1f)) {
 					ModelSelector(
@@ -151,12 +147,17 @@ internal fun ChatPage(
 				}
 			})
 		}) { innerPadding ->
-			ChatList(innerPaddingValues = innerPadding, conversation = conversation, loading = loadingJob != null, onEdit = {
-				inputState.editingMessage = it.id
-				inputState.messageContent = it.parts
-			}, onRegenerate = { message ->
-				viewModel.regenerateAtMessage(message)
-			})
+			ChatList(
+				innerPaddingValues = innerPadding,
+				conversation = conversation,
+				loading = loadingJob != null,
+				onEdit = {
+					inputState.editingMessage = it.id
+					inputState.messageContent = it.parts
+				},
+				onRegenerate = { message ->
+					viewModel.regenerateAtMessage(message)
+				})
 		}
 	}
 }
@@ -170,7 +171,6 @@ internal fun ChatList(
 	onEdit: (UIMessage) -> Unit = {}
 ) {
 	val state = rememberLazyListState()
-	val scope = rememberCoroutineScope()
 
 	val scrollToBottom = { state.requestScrollToItem(0) }
 
@@ -262,8 +262,9 @@ private fun TopBar(
 
 @Composable
 private fun DrawerContent(
-	current: Conversation, conversations: List<Conversation> = emptyList(), openSetting: () -> Unit, onOpenConversation: (Conversation) -> Unit
+	current: Conversation, conversations: List<Conversation> = emptyList(), openSetting: () -> Unit
 ) {
+	val navController = LocalNavController.current
 	ModalDrawerSheet(
 		modifier = Modifier.width(270.dp)
 	) {
@@ -279,7 +280,12 @@ private fun DrawerContent(
 				current = current,
 				conversations = conversations,
 				onClick = {
-					onOpenConversation(it)
+					navController.navigate(Screen.ChatPage(it.id)) {
+						launchSingleTop = true
+						popUpTo<Screen.ChatPage> {
+							inclusive = true
+						}
+					}
 				}
 			)
 			Row(

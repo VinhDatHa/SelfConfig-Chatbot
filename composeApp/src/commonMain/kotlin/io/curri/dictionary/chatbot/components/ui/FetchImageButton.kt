@@ -33,14 +33,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.composables.icons.lucide.Camera
 import com.composables.icons.lucide.Delete
 import com.composables.icons.lucide.Globe
 import com.composables.icons.lucide.Lucide
 import io.ktor.http.parseUrl
 
 @Composable
-internal fun TakeImageButton(onLoadImage: (String) -> Unit) {
+internal fun FetchImageButton(onLoadImage: (String) -> Unit) {
 	var isShowDialog by remember { mutableStateOf(false) }
 	var url by remember { mutableStateOf("") }
 	val focusRequester = remember { FocusRequester() }
@@ -110,7 +109,6 @@ internal fun TakeImageButton(onLoadImage: (String) -> Unit) {
 						modifier = Modifier
 							.fillMaxWidth()
 							.focusRequester(focusRequester),
-						singleLine = true,
 						trailingIcon = {
 							if (url.isBlank()) return@OutlinedTextField
 							IconButton(
@@ -147,8 +145,8 @@ internal fun TakeImageButton(onLoadImage: (String) -> Unit) {
 							onClick = {
 								isError = !isUrlValid(url)
 								if (!isError) {
-									url = ""
 									onLoadImage(url)
+//									url = ""
 								}
 							},
 							colors = ButtonDefaults.buttonColors(

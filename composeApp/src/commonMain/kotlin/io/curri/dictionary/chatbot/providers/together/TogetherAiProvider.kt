@@ -8,6 +8,7 @@ import io.curri.dictionary.chatbot.data.models.UIMessage
 import io.curri.dictionary.chatbot.data.models.UIMessageChoice
 import io.curri.dictionary.chatbot.data.models.UIMessagePart
 import io.curri.dictionary.chatbot.data.models.providers.ProviderSetting
+import io.curri.dictionary.chatbot.file_manager.FileManagerUtils
 import io.curri.dictionary.chatbot.network.jsonConfig
 import io.curri.dictionary.chatbot.providers.Provider
 import io.curri.dictionary.chatbot.providers.TextGenerationParams
@@ -43,6 +44,7 @@ import org.koin.core.component.inject
 object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinComponent {
 
 	private val client: HttpClient by inject()
+	private val fileManager: FileManagerUtils by inject()
 
 	override suspend fun listModels(providerSetting: ProviderSetting.TogetherAiProvider): List<ModelFromProvider> = withContext(Dispatchers.IO) {
 		val requestBuilder = HttpRequestBuilder().apply {
@@ -170,11 +172,13 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 								}
 
 								is UIMessagePart.Image -> {
+									val imageData = if (part.isLocal) fileManager.getFileInBase64(part.url) else part.url
 									add(buildJsonObject {
 										put("type", "image_url")
-										put("image_url", buildJsonObject {
-											put("url", part.url)
-										})
+										put("image_url",
+											buildJsonObject {
+												put("url", imageData)
+											})
 									})
 									/* ToDo build content for Image
 										add(buildJsonObject {
@@ -210,7 +214,7 @@ object TogetherAiProvider : Provider<ProviderSetting.TogetherAiProvider>, KoinCo
 			jsonObject["role"]?.jsonPrimitive?.contentOrNull?.uppercase() ?: "ASSISTANT"
 		)
 
-		// 也许支持其他模态的输出content? 暂时只支持文本吧
+		// Maybe it supports output content in other modes? Only text is supported for now.
 		val content = jsonObject["content"]?.jsonPrimitive?.contentOrNull ?: ""
 //		val reasoning = jsonObject["reasoning_content"] ?: jsonObject["reasoning"]
 //		val toolCalls = jsonObject["tool_calls"] as? JsonArray ?: JsonArray(emptyList())

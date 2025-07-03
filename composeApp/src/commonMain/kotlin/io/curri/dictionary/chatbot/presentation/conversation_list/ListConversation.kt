@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,6 +20,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -37,6 +38,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,11 +52,21 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.NotebookPen
 import com.composables.icons.lucide.RefreshCw
+import com.composables.icons.lucide.Search
 import com.composables.icons.lucide.Trash2
+import com.mohamedrejeb.calf.core.LocalPlatformContext
+import com.mohamedrejeb.calf.io.getPath
+import com.mohamedrejeb.calf.io.readByteArray
+import com.mohamedrejeb.calf.picker.FilePickerFileType
+import com.mohamedrejeb.calf.picker.FilePickerSelectionMode
+import com.mohamedrejeb.calf.picker.rememberFilePickerLauncher
+import io.curri.dictionary.chatbot.app.Screen
 import io.curri.dictionary.chatbot.components.ui.Conversation
-import io.curri.dictionary.chatbot.data.models.UIMessagePart
+import io.curri.dictionary.chatbot.components.ui.context.LocalNavController
 import io.curri.dictionary.chatbot.presentation.common_state.ScreenState
 import io.curri.dictionary.chatbot.theme.extendColors
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -71,7 +83,24 @@ internal fun ListConversationScreen(
 
 	val conversations by viewModel.conversation.collectAsStateWithLifecycle()
 	val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+	val navController = LocalNavController.current
+	val scope = rememberCoroutineScope()
+	val context = LocalPlatformContext.current
 
+	var byteArrays by remember { mutableStateOf<ByteArray?>(null) }
+	var filePath by remember { mutableStateOf<String?>(null) }
+	val singleImagePicker = rememberFilePickerLauncher(
+		type = FilePickerFileType.Image,
+		selectionMode = FilePickerSelectionMode.Single,
+		onResult = { files ->
+			scope.launch {
+				filePath = files.firstOrNull()?.getPath(context)
+				files.firstOrNull()?.readByteArray(context)?.let {
+					byteArrays = it
+				}
+			}
+		}
+	)
 	LaunchedEffect(Unit) {
 		viewModel.init()
 	}
@@ -92,6 +121,16 @@ internal fun ListConversationScreen(
 				style = MaterialTheme.typography.titleLarge,
 			)
 		}, actions = {
+			IconButton(
+				onClick = {
+					navController.navigate(Screen.SearchScreen)
+				}
+			) {
+				Icon(
+					imageVector = Lucide.Search,
+					contentDescription = "Search content"
+				)
+			}
 			IconButton(onClick = {
 				openConversation(Conversation.empty())
 			}) {
@@ -100,16 +139,16 @@ internal fun ListConversationScreen(
 				)
 			}
 		})
-	}) {
+	}) { innerPadding ->
 		Column(
-			modifier = Modifier.padding(it)
+			modifier = Modifier.padding(innerPadding)
 		) {
 			LazyColumn(
 				modifier = Modifier.fillMaxWidth(),
-				contentPadding = PaddingValues(16.dp),
+				contentPadding = PaddingValues(8.dp),
 				verticalArrangement = Arrangement.spacedBy(8.dp),
 			) {
-				if (conversations.isEmpty()) {
+				if (groupConversation.values.isEmpty()) {
 					item {
 						EmptyListScreen {
 							openConversation(
@@ -123,12 +162,13 @@ internal fun ListConversationScreen(
 					groupConversation.forEach { (date, conversationsOfDate) ->
 						stickyHeader {
 							DateHeader(date)
+
 						}
-						items(conversationsOfDate, key = { conversation -> conversation.id }) { item ->
+						items(conversationsOfDate.toImmutableList(), key = { conversation -> conversation.id }) { item ->
 							ConversationItem(conversation = item, selected = false, loading = screenState is ScreenState.Loading, onClick = {
 								openConversation(it)
 							}, onDelete = {
-
+								viewModel.delete(it)
 							}, onRegenerateTitle = {
 
 							}, modifier = Modifier.animateItem()
@@ -138,7 +178,9 @@ internal fun ListConversationScreen(
 				}
 			}
 		}
+
 	}
+
 }
 
 @Composable
@@ -161,7 +203,7 @@ private fun LazyItemScope.EmptyListScreen(
 }
 
 @Composable
-private fun ConversationItem(
+internal fun ConversationItem(
 	conversation: Conversation,
 	selected: Boolean,
 	loading: Boolean,
@@ -183,55 +225,63 @@ private fun ConversationItem(
 		modifier = modifier.clip(RoundedCornerShape(10f))
 			.combinedClickable(interactionSource = interactionSource, indication = LocalIndication.current, onClick = { onClick(conversation) }, onLongClick = {
 				showDropdownMenu = true
-			}).background(backgroundColor),
+			}),
 	) {
-		Row(
-			modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically
+		Card(
+			colors = CardDefaults.cardColors(
+				containerColor = MaterialTheme.colorScheme.surfaceContainer,
+				contentColor = MaterialTheme.colorScheme.onSurface
+			),
+			shape = RoundedCornerShape(12.dp)
 		) {
-			Column(
-				verticalArrangement = Arrangement.spacedBy(4.dp)
+			Row(
+				modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically
 			) {
-				Text(
-					text = conversation.title.ifBlank { "News" },
-					maxLines = 1,
-					style = MaterialTheme.typography.titleMedium,
-					overflow = TextOverflow.Ellipsis
-				)
-				Text(
-					text = conversation.messages.last().summaryAsText(),
-					style = MaterialTheme.typography.bodyMedium,
-					fontWeight = FontWeight.Light,
-					overflow = TextOverflow.Ellipsis,
-					maxLines = 1,
-				)
-			}
-			Spacer(Modifier.weight(1f))
-			AnimatedVisibility(loading) {
-				Box(modifier = Modifier.clip(CircleShape).background(MaterialTheme.extendColors.green6).size(4.dp).semantics {
-					contentDescription = "Loading"
-				})
-			}
-			DropdownMenu(
-				expanded = showDropdownMenu,
-				onDismissRequest = { showDropdownMenu = false },
-			) {
-				DropdownMenuItem(text = {
-					Text("Regenerate Title")
-				}, onClick = {
-					onRegenerateTitle(conversation)
-					showDropdownMenu = false
-				}, leadingIcon = {
-					Icon(Lucide.RefreshCw, null)
-				})
+				Column(
+					verticalArrangement = Arrangement.spacedBy(4.dp)
+				) {
+					Text(
+						text = conversation.title.ifBlank { "News" },
+						maxLines = 1,
+						style = MaterialTheme.typography.titleMedium,
+						overflow = TextOverflow.Ellipsis
+					)
+					Text(
+						text = conversation.messages.last().summaryAsText(),
+						style = MaterialTheme.typography.bodyMedium,
+						fontWeight = FontWeight.Light,
+						overflow = TextOverflow.Ellipsis,
+						maxLines = 1,
+					)
+				}
+				Spacer(Modifier.weight(1f))
+				AnimatedVisibility(loading) {
+					Box(modifier = Modifier.clip(CircleShape).background(MaterialTheme.extendColors.green6).size(4.dp).semantics {
+						contentDescription = "Loading"
+					})
+				}
+				DropdownMenu(
+					expanded = showDropdownMenu,
+					onDismissRequest = { showDropdownMenu = false },
+				) {
+					DropdownMenuItem(text = {
+						Text("Regenerate Title")
+					}, onClick = {
+						onRegenerateTitle(conversation)
+						showDropdownMenu = false
+					}, leadingIcon = {
+						Icon(Lucide.RefreshCw, null)
+					})
 
-				DropdownMenuItem(text = {
-					Text("Delete")
-				}, onClick = {
-					onDelete(conversation)
-					showDropdownMenu = false
-				}, leadingIcon = {
-					Icon(Lucide.Trash2, null)
-				})
+					DropdownMenuItem(text = {
+						Text("Delete")
+					}, onClick = {
+						onDelete(conversation)
+						showDropdownMenu = false
+					}, leadingIcon = {
+						Icon(Lucide.Trash2, null)
+					})
+				}
 			}
 		}
 	}

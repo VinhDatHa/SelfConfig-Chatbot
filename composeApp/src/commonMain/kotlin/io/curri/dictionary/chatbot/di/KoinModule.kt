@@ -16,11 +16,12 @@ import org.koin.core.context.startKoin
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
-
+import io.curri.dictionary.chatbot.presentation.search_page.SearchVM
 val viewModelModule = module {
 	viewModelOf(::ChatVM)
 	viewModelOf(::SettingViewModel)
 	viewModelOf(::ListConversationVM)
+	viewModelOf(::SearchVM)
 }
 
 val dataSourceModule = module {
