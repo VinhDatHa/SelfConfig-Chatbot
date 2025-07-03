@@ -7,9 +7,6 @@ fun NavController.newChat(
 	chatId: String
 ) {
 	navigate(Screen.ChatPage(chatId)) {
-		popUpTo(0) {
-			inclusive = true
-		}
 		launchSingleTop = true
 	}
 }

@@ -239,7 +239,7 @@ class ChatVM(
 	}
 
 	fun generateTitle() {
-		if (_conversation.value.title.isNotBlank()) return
+		if (_conversation.value.title.isNotBlank() || currentModelChat.value == null) return
 		val savedModelChatId = settings.value.chatModelId
 		val provider = settings.value.providers
 		if (savedModelChatId.isBlank()) return

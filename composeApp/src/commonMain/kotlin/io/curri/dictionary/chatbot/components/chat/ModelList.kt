@@ -35,7 +35,6 @@ import io.curri.dictionary.chatbot.data.models.ModelFromProvider
 import io.curri.dictionary.chatbot.data.models.ModelType
 import io.curri.dictionary.chatbot.data.models.providers.ProviderSetting
 import io.curri.dictionary.chatbot.theme.extendColors
-import io.curri.dictionary.chatbot.utils.MockData
 
 // ToDo find the model from data store
 
@@ -119,25 +118,6 @@ internal fun ModelList(
 					modifier = Modifier.padding(8.dp)
 				)
 			}
-//			MockData.mockListModel.let { provider ->
-//				stickyHeader {
-//					Text(
-//						text = "Together model",
-//						style = MaterialTheme.typography.labelMedium,
-//						color = MaterialTheme.colorScheme.primary,
-//						modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
-//					)
-//				}
-//				items(
-//					items = provider,
-//					key = { it.modelId }
-//				) { model ->
-//					ModelItem(
-//						model = model,
-//						onSelect = onSelect,
-//					)
-//				}
-//			}
 		}
 
 		providers.fastForEach { provider ->

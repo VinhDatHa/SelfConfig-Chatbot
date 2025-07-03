@@ -8,7 +8,6 @@ import androidx.compose.ui.Modifier
 import com.composables.icons.lucide.BookImage
 import com.composables.icons.lucide.Lucide
 import com.mohamedrejeb.calf.core.LocalPlatformContext
-import com.mohamedrejeb.calf.io.KmpFile
 import com.mohamedrejeb.calf.io.getPath
 import com.mohamedrejeb.calf.picker.FilePickerFileType
 import com.mohamedrejeb.calf.picker.FilePickerSelectionMode

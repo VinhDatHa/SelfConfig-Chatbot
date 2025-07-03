@@ -43,7 +43,7 @@ internal fun SearchPage(
 	val searchResult = viewModel.searchResult.collectAsStateWithLifecycle()
 
 	Scaffold(
-		modifier = Modifier.fillMaxSize()
+		modifier = modifier.fillMaxSize()
 			.background(MaterialTheme.colorScheme.background),
 		topBar = {
 			TopAppBar(
@@ -58,7 +58,7 @@ internal fun SearchPage(
 			)
 		}, bottomBar = {
 			SearchBar(
-				modifier = Modifier.imePadding().navigationBarsPadding(),
+				modifier = Modifier.imePadding().navigationBarsPadding().padding(horizontal = 12.dp),
 				input = query.value
 			) { input ->
 				viewModel.performSearch(input)
@@ -83,7 +83,7 @@ internal fun SearchPage(
 
 						}, onRegenerateTitle = {
 
-						}, loading = false, selected = false
+						}
 					)
 				}
 			}

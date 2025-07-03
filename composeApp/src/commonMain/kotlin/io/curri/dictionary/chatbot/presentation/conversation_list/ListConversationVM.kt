@@ -41,4 +41,12 @@ class ListConversationVM(
 			fileManagerUtils.deleteFile(conversation.files)
 		}
 	}
+
+	fun editTitle(conversation: Conversation, newTitle: String) {
+		viewModelScope.launch {
+			conversationRepo.updateConversation(
+				conversation.copy(title = newTitle)
+			)
+		}
+	}
 }

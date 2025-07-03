@@ -10,8 +10,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -97,7 +100,8 @@ internal fun ChatPage(
 		viewModel.loadConversation(id)
 	}
 
-	ModalNavigationDrawer(drawerState = drawerState,
+	ModalNavigationDrawer(
+		drawerState = drawerState,
 		drawerContent = {
 			DrawerContent(
 				current = conversation,
@@ -105,50 +109,54 @@ internal fun ChatPage(
 			) { navController.navigate(Screen.SettingsScreen) }
 		}) {
 		val inputState = rememberChatInputState()
-		Scaffold(topBar = {
-			TopBar(conversation, drawerState, onClickMenu = {
-				// Menu
-				viewModel.generateTitle()
-			}, onNewChat = {
-				onOpenNewChat()
-			})
-		}, snackbarHost = {
-			Toaster(
-				modifier = Modifier.fillMaxWidth(), toastState = toaster
-			)
-		}, bottomBar = {
-			ChatInput(state = inputState, enableSearch = false, onToggleSearch = {
-				// ToDo toggle search
-			}, onCancelClick = {
-				loadingJob?.cancel()
-			}, onSendClick = {
-				if (chatModel == null) {
-					toaster.show("Please selected model", ToastType.ERROR)
-					return@ChatInput
-				}
-				if (inputState.isEditing()) {
-					//ToDo handling message edit
-					viewModel.handleMessageEdit(
-						parts = inputState.messageContent, uuid = inputState.editingMessage ?: return@ChatInput
-					)
-				} else {
-					viewModel.handleMessageSend(inputState.messageContent)
-				}
-				inputState.clearInput()
-			}, onImageDelete = {
-				viewModel.deleteImage(it)
-			}, actions = {
-				Box(Modifier.weight(1f)) {
-					ModelSelector(
-						modelId = settings.chatModelId, providers = settings.providers, onSelect = {
-							viewModel.setChatModel(it)
-						}, type = ModelType.CHAT
-					)
-				}
-			})
-		}) { innerPadding ->
+		LaunchedEffect(loadingJob) {
+			inputState.loading = loadingJob != null
+		}
+		Scaffold(
+			topBar = {
+				TopBar(conversation, drawerState,
+					onClickMenu = {
+					viewModel.generateTitle()
+				}, onNewChat = {
+					onOpenNewChat()
+				})
+			}, snackbarHost = {
+				Toaster(
+					modifier = Modifier.fillMaxWidth(), toastState = toaster
+				)
+			}, bottomBar = {
+				ChatInput(state = inputState, enableSearch = false, onToggleSearch = {
+					// ToDo toggle search
+				}, onCancelClick = {
+					loadingJob?.cancel()
+				}, onSendClick = {
+					if (chatModel == null) {
+						toaster.show("Please selected model", ToastType.ERROR)
+						return@ChatInput
+					}
+					if (inputState.isEditing()) {
+						//ToDo handling message edit
+						viewModel.handleMessageEdit(
+							parts = inputState.messageContent, uuid = inputState.editingMessage ?: return@ChatInput
+						)
+					} else {
+						viewModel.handleMessageSend(inputState.messageContent)
+					}
+					inputState.clearInput()
+				}, onImageDelete = {
+					viewModel.deleteImage(it)
+				}, actions = {
+					Box(Modifier.weight(1f)) {
+						ModelSelector(
+							modelId = settings.chatModelId, providers = settings.providers, onSelect = {
+								viewModel.setChatModel(it)
+							}, type = ModelType.CHAT
+						)
+					}
+				})
+			}) { innerPadding ->
 			ChatList(
-				innerPaddingValues = innerPadding,
+				modifier = Modifier.padding(innerPadding),
 				conversation = conversation,
 				loading = loadingJob != null,
 				onEdit = {
@@ -164,7 +172,7 @@ internal fun ChatPage(
 
 @Composable
 internal fun ChatList(
-	innerPaddingValues: PaddingValues,
+	modifier: Modifier = Modifier,
 	conversation: Conversation,
 	loading: Boolean,
 	onRegenerate: (UIMessage) -> Unit = {},
@@ -174,9 +182,12 @@ internal fun ChatList(
 
 	val scrollToBottom = { state.requestScrollToItem(0) }
 
-	Box(modifier = Modifier.padding(innerPaddingValues)) {
+	Box(modifier = modifier) {
 		LazyColumn(
-			state = state, contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp), reverseLayout = true
+			state = state,
+			contentPadding = PaddingValues(16.dp),
+			verticalArrangement = Arrangement.spacedBy(8.dp),
+			reverseLayout = true
 		) {
 			item(ScrollBottomKey) {
 				Spacer(modifier = Modifier.fillMaxWidth().height(5.dp))

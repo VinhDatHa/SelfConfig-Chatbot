@@ -36,7 +36,7 @@ actual class FileManagerUtils(private val context: Context) {
 		}
 	}
 
-	actual suspend fun saveImageToFile(uri: String, kmpFile: KmpFile?): String {
+	actual suspend fun saveImageToFile(uri: String): String {
 		return try {
 			val fileDir = context.filesDir.resolve("images")
 			if (!fileDir.exists()) {

@@ -1,6 +1,5 @@
 package io.curri.dictionary.chatbot.presentation.conversation_list
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -13,11 +12,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -28,45 +24,31 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.NotebookPen
-import com.composables.icons.lucide.RefreshCw
 import com.composables.icons.lucide.Search
+import com.composables.icons.lucide.SquarePen
 import com.composables.icons.lucide.Trash2
-import com.mohamedrejeb.calf.core.LocalPlatformContext
-import com.mohamedrejeb.calf.io.getPath
-import com.mohamedrejeb.calf.io.readByteArray
-import com.mohamedrejeb.calf.picker.FilePickerFileType
-import com.mohamedrejeb.calf.picker.FilePickerSelectionMode
-import com.mohamedrejeb.calf.picker.rememberFilePickerLauncher
 import io.curri.dictionary.chatbot.app.Screen
 import io.curri.dictionary.chatbot.components.ui.Conversation
 import io.curri.dictionary.chatbot.components.ui.context.LocalNavController
-import io.curri.dictionary.chatbot.presentation.common_state.ScreenState
-import io.curri.dictionary.chatbot.theme.extendColors
-import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.launch
+import io.curri.dictionary.chatbot.utils.newChat
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -84,23 +66,7 @@ internal fun ListConversationScreen(
 	val conversations by viewModel.conversation.collectAsStateWithLifecycle()
 	val screenState by viewModel.screenState.collectAsStateWithLifecycle()
 	val navController = LocalNavController.current
-	val scope = rememberCoroutineScope()
-	val context = LocalPlatformContext.current
 
-	var byteArrays by remember { mutableStateOf<ByteArray?>(null) }
-	var filePath by remember { mutableStateOf<String?>(null) }
-	val singleImagePicker = rememberFilePickerLauncher(
-		type = FilePickerFileType.Image,
-		selectionMode = FilePickerSelectionMode.Single,
-		onResult = { files ->
-			scope.launch {
-				filePath = files.firstOrNull()?.getPath(context)
-				files.firstOrNull()?.readByteArray(context)?.let {
-					byteArrays = it
-				}
-			}
-		}
-	)
 	LaunchedEffect(Unit) {
 		viewModel.init()
 	}
@@ -143,52 +109,31 @@ internal fun ListConversationScreen(
 		Column(
 			modifier = Modifier.padding(innerPadding)
 		) {
-			LazyColumn(
+			ListOfConversation(
 				modifier = Modifier.fillMaxWidth(),
-				contentPadding = PaddingValues(8.dp),
-				verticalArrangement = Arrangement.spacedBy(8.dp),
-			) {
-				if (groupConversation.values.isEmpty()) {
-					item {
-						EmptyListScreen {
-							openConversation(
-								Conversation(
-									id = Uuid.random().toString(), messages = emptyList()
-								)
-							)
-						}
-					}
-				} else {
-					groupConversation.forEach { (date, conversationsOfDate) ->
-						stickyHeader {
-							DateHeader(date)
+				onDelete = { viewModel.delete(it) },
+				onNewConversation = {
+					navController.newChat(Uuid.random().toString())
+				},
+				conversations = groupConversation,
+				onOpen = {
+					openConversation(it)
+				},
+				onRegenerateTitle = {
 
-						}
-						items(conversationsOfDate.toImmutableList(), key = { conversation -> conversation.id }) { item ->
-							ConversationItem(conversation = item, selected = false, loading = screenState is ScreenState.Loading, onClick = {
-								openConversation(it)
-							}, onDelete = {
-								viewModel.delete(it)
-							}, onRegenerateTitle = {
-
-							}, modifier = Modifier.animateItem()
-							)
-						}
-					}
 				}
-			}
+			)
 		}
 
 	}
-
 }
 
 @Composable
-private fun LazyItemScope.EmptyListScreen(
+private fun EmptyListScreen(
 	modifier: Modifier = Modifier, onClick: () -> Unit
 ) {
-	Surface(
-		modifier, shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.surfaceContainerLow
+	Column(
+		modifier
 	) {
 		Button(onClick = {
 			onClick()
@@ -203,21 +148,53 @@ private fun LazyItemScope.EmptyListScreen(
 }
 
 @Composable
+private fun ListOfConversation(
+	modifier: Modifier = Modifier,
+	conversations: Map<LocalDate, List<Conversation>>,
+	onOpen: (Conversation) -> Unit,
+	onDelete: (Conversation) -> Unit,
+	onRegenerateTitle: (Conversation) -> Unit,
+	onNewConversation: () -> Unit
+) {
+	LazyColumn(
+		modifier,
+		contentPadding = PaddingValues(8.dp),
+		verticalArrangement = Arrangement.spacedBy(8.dp),
+	) {
+		if (conversations.values.isEmpty()) {
+			item {
+				EmptyListScreen {
+					onNewConversation()
+				}
+			}
+		} else {
+			conversations.forEach { (date, conversationOfDate) ->
+				stickyHeader {
+					DateHeader(date)
+				}
+				items(conversationOfDate, key = { it.id }) { item ->
+					ConversationItem(
+						modifier = Modifier.animateItem(),
+						conversation = item,
+						onClick = onOpen,
+						onDelete = onDelete,
+						onRegenerateTitle = onRegenerateTitle
+					)
+				}
+			}
+		}
+	}
+}
+
+@Composable
 internal fun ConversationItem(
 	conversation: Conversation,
-	selected: Boolean,
-	loading: Boolean,
 	modifier: Modifier = Modifier,
 	onDelete: (Conversation) -> Unit = {},
 	onRegenerateTitle: (Conversation) -> Unit = {},
 	onClick: (Conversation) -> Unit
 ) {
 	val interactionSource = remember { MutableInteractionSource() }
-	val backgroundColor = if (selected) {
-		MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
-	} else {
-		MaterialTheme.colorScheme.surfaceContainer
-	}
 	var showDropdownMenu by remember {
 		mutableStateOf(false)
 	}
@@ -255,22 +232,22 @@ internal fun ConversationItem(
 					)
 				}
 				Spacer(Modifier.weight(1f))
-				AnimatedVisibility(loading) {
-					Box(modifier = Modifier.clip(CircleShape).background(MaterialTheme.extendColors.green6).size(4.dp).semantics {
-						contentDescription = "Loading"
-					})
-				}
+//				AnimatedVisibility(loading) {
+//					Box(modifier = Modifier.clip(CircleShape).background(MaterialTheme.extendColors.green6).size(4.dp).semantics {
+//						contentDescription = "Loading"
+//					})
+//				}
 				DropdownMenu(
 					expanded = showDropdownMenu,
 					onDismissRequest = { showDropdownMenu = false },
 				) {
 					DropdownMenuItem(text = {
-						Text("Regenerate Title")
+						Text("Rename conversation")
 					}, onClick = {
 						onRegenerateTitle(conversation)
 						showDropdownMenu = false
 					}, leadingIcon = {
-						Icon(Lucide.RefreshCw, null)
+						Icon(Lucide.SquarePen, null)
 					})
 
 					DropdownMenuItem(text = {
