@@ -90,7 +90,6 @@ class ChatVM(
 					), updateAt = Clock.System.now()
 				)
 			}
-//			handleWebSearch(content)
 			handleMessageComplete()
 		}
 		_conversationJob.update { job }
@@ -163,16 +162,18 @@ class ChatVM(
 				settings = settings.value,
 				model = model,
 				messages = _conversation.value.messages
-			).collect {
-				updateConversation(conversation.value.copy(messages = it))
+			).collect { messages ->
+				_conversation.updateAndGet {
+					it.copy(messages = messages)
+				}.let {
+					saveConversation(it)
+				}
 			}
 		}.onFailure {
 			_errorFlow.emit(it)
 			_conversationJob.update { null }
 		}.onSuccess {
-			// ToDo generate title
-			saveConversation()
-			delay(2000L)
+			delay(1000L)
 			generateTitle()
 		}
 	}
@@ -207,7 +208,7 @@ class ChatVM(
 						messages = conversation.messages.subList(0, index + 1)
 					)
 				}.also {
-					saveConversation()
+					saveConversation(it)
 				}
 			}
 		} else {
@@ -222,7 +223,7 @@ class ChatVM(
 				_conversation.updateAndGet {
 					it.copy(messages = it.messages.subList(0, index + 1))
 				}.also {
-					saveConversation()
+					saveConversation(it)
 				}
 			}
 		}
@@ -237,7 +238,7 @@ class ChatVM(
 	}
 
 	fun generateTitle() {
-		if (_conversation.value.title.isNotBlank() || currentModelChat.value == null) return
+		if (_conversation.value.title.isNotBlank() || _conversation.value.title != "..." || currentModelChat.value == null) return
 		val savedModelChatId = settings.value.chatModelId
 		val provider = settings.value.providers
 		if (savedModelChatId.isBlank()) return
@@ -271,11 +272,10 @@ class ChatVM(
 				if (titleIfSuccess == null) {
 					_errorFlow.emit(IllegalArgumentException("Generate title failed"))
 				} else {
-					titleIfSuccess.message?.toText().takeIf { !it.isNullOrBlank() }?.let { title ->
-						_conversation.update {
-							it.copy(title = title)
+					titleIfSuccess.message?.toText()?.trim()?.let { title ->
+						_conversation.updateAndGet { it.copy(title = title) }.let {
+							saveConversation(it)
 						}
-						saveConversation()
 					}
 				}
 			} catch (
@@ -286,15 +286,14 @@ class ChatVM(
 		}
 	}
 
-	private fun saveConversation() {
-		val currentConversation = _conversation.value
+	private fun saveConversation(conversation: Conversation) {
 		viewModelScope.launch(Dispatchers.IO) {
-			val isConversationExist = conversationRepository.getConversationById(currentConversation.id) != null
+			val isConversationExist = conversationRepository.getConversationById(conversation.id) != null
 			try {
 				if (isConversationExist) {
-					conversationRepository.updateConversation(currentConversation)
+					conversationRepository.updateConversation(conversation)
 				} else {
-					conversationRepository.insertConversation(currentConversation)
+					conversationRepository.insertConversation(conversation)
 				}
 			} catch (ex: Exception) {
 				ex.printStackTrace()

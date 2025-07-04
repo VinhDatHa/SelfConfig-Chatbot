@@ -83,7 +83,8 @@ internal fun SearchPage(
 
 						}, onRegenerateTitle = {
 
-						}
+						},
+						isShowMenu = false
 					)
 				}
 			}

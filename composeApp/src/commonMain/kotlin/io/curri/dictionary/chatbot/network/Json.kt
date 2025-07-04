@@ -21,5 +21,6 @@ inline fun <reified T> T.toJson(): String = jsonConfig.encodeToString<T>(this)
 inline fun <reified T> String.decodeFromJson(): T? = try {
 	jsonConfig.decodeFromString<T>(this)
 } catch (ex: SerializationException) {
+	ex.printStackTrace()
 	null
 }

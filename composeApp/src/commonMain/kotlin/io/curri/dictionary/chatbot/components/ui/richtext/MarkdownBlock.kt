@@ -41,9 +41,6 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import coil3.compose.AsyncImage
-import io.curri.dictionary.chatbot.components.ui.TableCell
-import io.curri.dictionary.chatbot.components.ui.TableHeader
-import io.curri.dictionary.chatbot.components.ui.TableRow
 import io.curri.dictionary.chatbot.components.ui.table.TableNode
 import org.intellij.markdown.MarkdownElementTypes
 import org.intellij.markdown.MarkdownTokenTypes
@@ -52,7 +49,6 @@ import org.intellij.markdown.ast.findChildOfType
 import org.intellij.markdown.ast.getTextInNode
 import org.intellij.markdown.flavours.gfm.GFMElementTypes
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
-import org.intellij.markdown.flavours.gfm.GFMTokenTypes
 import org.intellij.markdown.parser.MarkdownParser
 
 private val flavour by lazy {
@@ -64,9 +60,9 @@ private val parser by lazy {
 }
 
 private val INLINE_LATEX_REGEX = Regex("\\\\\\((.+?)\\\\\\)")
-private val BLOCK_LATEX_REGEX = Regex("\\\\\\[(.+?)\\\\\\]", RegexOption.MULTILINE)
+private val BLOCK_LATEX_REGEX = Regex("\\\\\\[(.+?)\\\\\\]", RegexOption.IGNORE_CASE)
 private val CITATION_REGEX = Regex("\\[citation:(\\w+)\\]")
-val THINKING_REGEX = Regex("<think>([\\s\\S]*?)(?:</think>|$)", RegexOption.MULTILINE)
+val THINKING_REGEX = Regex("<think>([\\s\\S]*?)(?:</think>|$)", RegexOption.IGNORE_CASE)
 
 private fun preProcess(content: String): String {
 	var result = content.replace(INLINE_LATEX_REGEX) { matchResult ->

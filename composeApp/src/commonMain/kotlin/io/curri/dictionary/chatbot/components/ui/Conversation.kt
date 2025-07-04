@@ -24,7 +24,7 @@ data class Conversation(
 	@Serializable(with = InstantSerializer::class)
 	val createAt: Instant = Clock.System.now(),
 	@Serializable(with = InstantSerializer::class)
-	val updateAt: Instant = Clock.System.now()
+	val updateAt: Instant = Clock.System.now(),
 ) {
 
 	val files: List<String>

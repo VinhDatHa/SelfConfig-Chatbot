@@ -10,11 +10,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -51,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.ChevronDown
 import com.composables.icons.lucide.ListTree
 import com.composables.icons.lucide.Lucide
@@ -116,10 +114,10 @@ internal fun ChatPage(
 			topBar = {
 				TopBar(conversation, drawerState,
 					onClickMenu = {
-					viewModel.generateTitle()
-				}, onNewChat = {
-					onOpenNewChat()
-				})
+						viewModel.generateTitle()
+					}, onNewChat = {
+						onOpenNewChat()
+					})
 			}, snackbarHost = {
 				Toaster(
 					modifier = Modifier.fillMaxWidth(), toastState = toaster
@@ -238,7 +236,10 @@ private const val ScrollBottomKey = "ScrollBottomKey"
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar(
-	conversation: Conversation, drawerState: DrawerState, onClickMenu: () -> Unit, onNewChat: () -> Unit
+	conversation: Conversation,
+	drawerState: DrawerState,
+	onClickMenu: () -> Unit,
+	onNewChat: () -> Unit
 ) {
 	val scope = rememberCoroutineScope()
 
@@ -250,7 +251,7 @@ private fun TopBar(
 		}
 	}, title = {
 		Text(
-			text = conversation.title.ifBlank { "New chat" },
+			text = conversation.title.ifBlank { "Untitled" },
 			maxLines = 1,
 			fontSize = MaterialTheme.typography.titleMedium.fontSize,
 			overflow = TextOverflow.Ellipsis,
@@ -280,14 +281,28 @@ private fun DrawerContent(
 		modifier = Modifier.width(270.dp)
 	) {
 		Column(
-			modifier = Modifier.padding(8.dp),
+			modifier = Modifier.padding(8.dp).fillMaxWidth(),
 			verticalArrangement = Arrangement.spacedBy(8.dp)
 		) {
-			// ToDo card to check update available
+			TextButton(
+				onClick = {
+					navController.popBackStack()
+				},
+				contentPadding = PaddingValues(8.dp)
+			) {
+				Icon(
+					imageVector = Lucide.ArrowLeft,
+					contentDescription = "Open home"
+				)
+				Spacer(modifier = Modifier.size(8.dp))
+				Text(
+					"Home", style = MaterialTheme.typography.titleLarge
+				)
+			}
 			Spacer(modifier = Modifier.size(16.dp))
-			Text("History", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+			Text("History", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(start = 4.dp))
 			ConversationHistory(
-				modifier = Modifier.fillMaxWidth().weight(1f),
+				modifier = Modifier.fillMaxWidth().weight(1f).padding(start = 4.dp),
 				current = current,
 				conversations = conversations,
 				onClick = {
@@ -305,7 +320,8 @@ private fun DrawerContent(
 				TextButton(
 					onClick = {
 						openSetting()
-					}, modifier = Modifier.weight(1f)
+					},
+					modifier = Modifier.weight(1f)
 				) {
 					Icon(Lucide.Settings, "Settings")
 					Text("Settings", modifier = Modifier.padding(start = 4.dp))

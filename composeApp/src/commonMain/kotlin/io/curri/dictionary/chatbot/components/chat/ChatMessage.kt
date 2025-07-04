@@ -150,9 +150,6 @@ private fun MessagePartsBlock(
 						) {
 							AsyncImage(
 								model = ImageRequest.Builder(context = context).data(image.url).build(),
-								onState = {
-									println("State: $it")
-								},
 								contentDescription = "image",
 								modifier = Modifier
 									.clip(RoundedCornerShape(8.dp))

@@ -1,6 +1,7 @@
 package io.curri.dictionary.chatbot.data.models
 
 import io.curri.dictionary.chatbot.network.search.SearchResult
+import io.curri.dictionary.chatbot.providers.together.response.Usage
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlin.uuid.ExperimentalUuidApi
@@ -132,7 +133,15 @@ sealed class UIMessagePart {
 data class MessageChunk(
 	val id: String,
 	val model: String,
-	val choices: List<UIMessageChoice>
+	val choices: List<UIMessageChoice>,
+	val usage: TokenUsage = TokenUsage()
+)
+
+@Serializable
+data class TokenUsage(
+	val promptTokens: Int = 0,
+	val completionTokens: Int = 0,
+	val totalTokens: Int = 0
 )
 
 @Serializable

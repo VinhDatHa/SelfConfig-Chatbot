@@ -20,9 +20,9 @@ object HttpClientFactory {
 				json(jsonConfig)
 			}
 			install(HttpTimeout) {
-				socketTimeoutMillis = 30_000L
-				requestTimeoutMillis = 30_000L
-				connectTimeoutMillis = 30_000L
+				socketTimeoutMillis = 120_000L
+				requestTimeoutMillis = 120_000L
+				connectTimeoutMillis = 120_000L
 			}
 			install(HttpRequestRetry) {
 				retryOnServerErrors(maxRetries = 5)

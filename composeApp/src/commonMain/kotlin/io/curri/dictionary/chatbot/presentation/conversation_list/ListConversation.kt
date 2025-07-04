@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,7 +41,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.NotebookPen
 import com.composables.icons.lucide.Search
@@ -48,8 +52,13 @@ import com.composables.icons.lucide.SquarePen
 import com.composables.icons.lucide.Trash2
 import io.curri.dictionary.chatbot.app.Screen
 import io.curri.dictionary.chatbot.components.ui.Conversation
+import io.curri.dictionary.chatbot.components.ui.ToastType
+import io.curri.dictionary.chatbot.components.ui.WavyCircularProgressIndicator
 import io.curri.dictionary.chatbot.components.ui.context.LocalNavController
+import io.curri.dictionary.chatbot.components.ui.toaster
+import io.curri.dictionary.chatbot.presentation.common_state.ScreenState
 import io.curri.dictionary.chatbot.utils.newChat
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -64,11 +73,20 @@ internal fun ListConversationScreen(
 	viewModel: ListConversationVM = koinViewModel(), openConversation: (Conversation) -> Unit
 ) {
 
-	val conversations by viewModel.conversation.collectAsStateWithLifecycle()
+	val lifecycleOwner = LocalLifecycleOwner.current
 	val navController = LocalNavController.current
-
+	val conversations by viewModel.conversation.collectAsStateWithLifecycle()
+	val state by viewModel.screenState.collectAsStateWithLifecycle()
 	LaunchedEffect(Unit) {
 		viewModel.init()
+	}
+
+	LaunchedEffect(Unit) {
+		lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+			viewModel.errorFlow.collectLatest { error ->
+				toaster.show(error.message ?: "An error occurred", type = ToastType.ERROR)
+			}
+		}
 	}
 
 	val groupConversation by remember(conversations) {
@@ -80,59 +98,67 @@ internal fun ListConversationScreen(
 		}
 	}
 
-	Scaffold(modifier = Modifier.background(MaterialTheme.colorScheme.background), topBar = {
-		TopAppBar(title = {
-			Text(
-				"Recent chat",
-				style = MaterialTheme.typography.titleLarge,
-			)
-		}, actions = {
+	Scaffold(
+		modifier = Modifier.background(MaterialTheme.colorScheme.background),
+		topBar = {
+			TopAppBar(title = {
+				Text(
+					"Recent chat",
+					style = MaterialTheme.typography.titleLarge,
+				)
+			}, actions = {
+				IconButton(
+					onClick = {
+						navController.navigate(Screen.SearchScreen) {
+							launchSingleTop = true
+						}
+					}
+				) {
+					Icon(
+						imageVector = Lucide.Search,
+						contentDescription = "Search content"
+					)
+				}
+			})
+		}, floatingActionButton = {
 			IconButton(
 				onClick = {
-					navController.navigate(Screen.SearchScreen)
-				}
+					openConversation(Conversation.empty())
+				},
+				colors = IconButtonDefaults.iconButtonColors().copy(
+					containerColor = MaterialTheme.colorScheme.secondaryContainer,
+					contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+				)
 			) {
 				Icon(
-					imageVector = Lucide.Search,
-					contentDescription = "Search content"
+					imageVector = Lucide.NotebookPen, contentDescription = "Create new chat"
 				)
 			}
-		})
-	}, floatingActionButton = {
-		IconButton(
-			onClick = {
-				openConversation(Conversation.empty())
-//				navController.navigate(Screen.SettingsScreen)
-			},
-			colors = IconButtonDefaults.iconButtonColors().copy(
-				containerColor = MaterialTheme.colorScheme.secondaryContainer,
-				contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-			)
-		) {
-			Icon(
-				imageVector = Lucide.NotebookPen, contentDescription = "Create new chat"
-			)
-		}
-	}) { innerPadding ->
+		}) { innerPadding ->
 		Column(
 			modifier = Modifier.padding(innerPadding)
 		) {
-			ListOfConversation(
-				modifier = Modifier.fillMaxWidth(),
-				onDelete = { viewModel.delete(it) },
-				onNewConversation = {
-					navController.newChat(Uuid.random().toString())
-				},
-				conversations = groupConversation,
-				onOpen = {
-					openConversation(it)
-				},
-				onRegenerateTitle = {
-
-				}
-			)
+			if (state == ScreenState.Loading) {
+				WavyCircularProgressIndicator(
+					modifier = Modifier.size(128.dp).align(Alignment.CenterHorizontally),
+				)
+			} else {
+				ListOfConversation(
+					modifier = Modifier.fillMaxWidth(),
+					onDelete = { viewModel.delete(it) },
+					onNewConversation = {
+						navController.newChat(Uuid.random().toString())
+					},
+					conversations = groupConversation,
+					onOpen = {
+						openConversation(it)
+					},
+					onRegenerateTitle = {
+						viewModel.generateTitle(it)
+					}
+				)
+			}
 		}
-
 	}
 }
 
@@ -200,7 +226,8 @@ internal fun ConversationItem(
 	modifier: Modifier = Modifier,
 	onDelete: (Conversation) -> Unit = {},
 	onRegenerateTitle: (Conversation) -> Unit = {},
-	onClick: (Conversation) -> Unit
+	onClick: (Conversation) -> Unit,
+	isShowMenu: Boolean = true
 ) {
 	val interactionSource = remember { MutableInteractionSource() }
 	var showDropdownMenu by remember {
@@ -226,13 +253,13 @@ internal fun ConversationItem(
 					verticalArrangement = Arrangement.spacedBy(4.dp)
 				) {
 					Text(
-						text = conversation.title.ifBlank { "News" },
+						text = conversation.title.ifBlank { "Untitled" },
 						maxLines = 1,
 						style = MaterialTheme.typography.titleMedium,
 						overflow = TextOverflow.Ellipsis
 					)
 					Text(
-						text = conversation.messages.last().summaryAsText(),
+						text = conversation.messages.first().summaryAsText(),
 						style = MaterialTheme.typography.bodyMedium,
 						fontWeight = FontWeight.Light,
 						overflow = TextOverflow.Ellipsis,
@@ -240,6 +267,7 @@ internal fun ConversationItem(
 					)
 				}
 				Spacer(Modifier.weight(1f))
+				if (!isShowMenu) return@Row
 				DropdownMenu(
 					expanded = showDropdownMenu,
 					onDismissRequest = { showDropdownMenu = false },

@@ -17,6 +17,8 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 import io.curri.dictionary.chatbot.presentation.search_page.SearchVM
+import org.koin.core.qualifier.named
+
 val viewModelModule = module {
 	viewModelOf(::ChatVM)
 	viewModelOf(::SettingViewModel)
@@ -34,7 +36,7 @@ val dataSourceModule = module {
 
 val networkModule = module {
 	single<HttpClientEngine> { createHttpClientEngine() }
-	single<HttpClient> { HttpClientFactory.create(get()) }
+	single<HttpClient>(named("clientConfiged")) { HttpClientFactory.create(get()) }
 }
 
 expect val platformModule: Module
