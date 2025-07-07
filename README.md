@@ -33,6 +33,6 @@ I also want to give a shout-out to [Rikka](https://rikka-ai.com/) — the author
 - [Jetbrains Markdown](https://www.jetbrains.com/help/idea/markdown.html): to parse and convert markdown to displayable text
 
 # How to use: 
-**Prerequisite:** The API key of pre-define providers include: TogetherAI, Open Router, OpenAI. 
-**Open settings:** Select the `provider section`, enter your API key into field. Pick the a specific model from `Provider` and now, you start using app. 
+- **Prerequisite:** The API key of pre-define providers include: TogetherAI, Open Router, OpenAI. 
+- **Open settings:** Select the `provider section`, enter your API key into field. Pick the a specific model from `Provider` and now, you start using app. 
 
