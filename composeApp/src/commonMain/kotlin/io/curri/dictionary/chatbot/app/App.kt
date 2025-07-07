@@ -143,7 +143,6 @@ private fun AppRoute(navHostController: NavHostController) {
 	}
 }
 
-//}
 
 @Serializable
 sealed interface Screen {

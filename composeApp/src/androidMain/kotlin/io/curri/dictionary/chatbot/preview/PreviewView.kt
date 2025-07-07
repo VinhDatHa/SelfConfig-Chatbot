@@ -23,7 +23,6 @@ import io.curri.dictionary.chatbot.components.ui.ToastItem
 import io.curri.dictionary.chatbot.components.ui.ToastType
 import io.curri.dictionary.chatbot.components.ui.WavyCircularProgressIndicator
 import io.curri.dictionary.chatbot.components.ui.WavyLinearProgressIndicator
-import io.curri.dictionary.chatbot.theme.AppTheme
 import kotlin.time.ExperimentalTime
 
 @Composable

@@ -50,7 +50,7 @@ internal val DEFAULT_PROVIDERS = listOf(
 		name = "OpenRouter",
 		baseUrl = "https://openrouter.ai/api/v1",
 		apiKey = "",
-		enabled = false,
+		enabled = true,
 		models = emptyList()
 	),
 	ProviderSetting.OpenAiProvider(

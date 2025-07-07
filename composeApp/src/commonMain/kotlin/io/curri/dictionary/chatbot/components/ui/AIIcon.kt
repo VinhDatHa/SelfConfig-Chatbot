@@ -81,14 +81,6 @@ fun AIIcon(
 		val model = remember(path, contentColor, context) {
 			ImageRequest.Builder(context)
 				.data("file:///android_asset/icons/$path.svg")
-				// ToDo fill color
-//			.css(
-//				"""
-//                svg {
-//                  fill: ${contentColor.toCssHex()};
-//                }
-//            """.trimIndent()
-//			)
 				.build()
 		}
 		AsyncImage(

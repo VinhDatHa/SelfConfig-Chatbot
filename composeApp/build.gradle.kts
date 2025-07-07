@@ -11,11 +11,11 @@ plugins {
 	alias(libs.plugins.kotlin.serialization)
 	alias(libs.plugins.ksp)
 	alias(libs.plugins.room)
+	alias(libs.plugins.googleServices)
 }
 
 kotlin {
 	androidTarget {
-		@OptIn(ExperimentalKotlinGradlePluginApi::class)
 		compilerOptions {
 			jvmTarget.set(JvmTarget.JVM_11)
 		}
@@ -54,6 +54,9 @@ kotlin {
 			implementation(libs.koin.androidx.compose)
 			implementation(libs.androidx.datastore)
 			implementation(libs.jetbrains.markdown)
+			implementation(project.dependencies.platform(libs.android.firebase.bom))
+			implementation(libs.android.firebase.analytics)
+			implementation(libs.androidx.core.splashscreen)
 		}
 		commonMain.dependencies {
 			implementation(compose.runtime)
@@ -81,8 +84,6 @@ kotlin {
 			implementation(libs.androidx.room.runtime)
 			implementation(libs.sqlite.bundled)
 			implementation(libs.kotlinx.date.time)
-			implementation(libs.peekaboo.ui)
-//			implementation(libs.peekaboo.image.picker)
 			implementation(libs.ksoup.core)
 			implementation(libs.ksoup.kotlin)
 			implementation(libs.calf.picker)
@@ -127,10 +128,22 @@ android {
 
 	buildFeatures {
 		compose = true
+		buildConfig = true
 	}
 	buildTypes {
+		getByName("debug") {
+			isMinifyEnabled = false
+			versionNameSuffix = "-DEBUG"
+			isDebuggable = true
+		}
+
 		getByName("release") {
 			isMinifyEnabled = false
+			isDebuggable = false
+			isShrinkResources = true
+			proguardFiles(
+				getDefaultProguardFile("proguard-android-optimize.txt"),"proguard-rules.pro"
+			)
 		}
 	}
 	compileOptions {

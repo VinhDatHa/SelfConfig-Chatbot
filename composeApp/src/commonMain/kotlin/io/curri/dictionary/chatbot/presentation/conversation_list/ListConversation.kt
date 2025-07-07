@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +27,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -48,6 +50,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.NotebookPen
 import com.composables.icons.lucide.Search
+import com.composables.icons.lucide.Settings
 import com.composables.icons.lucide.SquarePen
 import com.composables.icons.lucide.Trash2
 import io.curri.dictionary.chatbot.app.Screen
@@ -119,6 +122,18 @@ internal fun ListConversationScreen(
 						contentDescription = "Search content"
 					)
 				}
+				IconButton(
+					onClick = {
+						navController.navigate(Screen.SettingsScreen) {
+							launchSingleTop = true
+						}
+					}
+				) {
+					Icon(
+						imageVector = Lucide.Settings,
+						contentDescription = "Setting content"
+					)
+				}
 			})
 		}, floatingActionButton = {
 			IconButton(
@@ -136,12 +151,14 @@ internal fun ListConversationScreen(
 			}
 		}) { innerPadding ->
 		Column(
-			modifier = Modifier.padding(innerPadding)
+			modifier = Modifier.padding(innerPadding),
 		) {
 			if (state == ScreenState.Loading) {
-				WavyCircularProgressIndicator(
-					modifier = Modifier.size(128.dp).align(Alignment.CenterHorizontally),
-				)
+				Surface(modifier = Modifier.fillMaxWidth().wrapContentHeight()) {
+					WavyCircularProgressIndicator(
+						modifier = Modifier.size(64.dp).align(Alignment.CenterHorizontally),
+					)
+				}
 			} else {
 				ListOfConversation(
 					modifier = Modifier.fillMaxWidth(),

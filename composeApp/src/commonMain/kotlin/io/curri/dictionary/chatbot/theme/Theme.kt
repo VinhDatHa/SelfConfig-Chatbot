@@ -41,7 +41,7 @@ fun AppTheme(
 	) {
 		MaterialTheme(
 			colorScheme = colorScheme,
-			typography = Typography,
+			typography = SfProDisplayTypography(),
 			content = content
 		)
 	}

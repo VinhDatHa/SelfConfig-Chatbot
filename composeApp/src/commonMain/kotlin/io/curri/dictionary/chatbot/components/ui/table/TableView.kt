@@ -139,19 +139,10 @@ private fun <T> SubcomposeColumnWidthCalculator(
 					headerPlaceables.forEach {
 						val measured = it.measure(Constraints())
 						maxContentWidth = max(maxContentWidth, measured.width)
-//						maxContentWidth =
-//							max(maxContentWidth, it.maxIntrinsicWidth(Constraints.Infinity))
 					}
 
 					// Measure Sample Data Cells
 					sampleData.forEachIndexed { sampleRowIndex, rowData ->
-						// Unique slotId for each cell being measured
-//						val cellSlotId = "c_${colIndex}_${sampleRowIndex}"
-//						val cellPlaceables = subcompose(cellSlotId) { column.cell(rowData) }
-//						cellPlaceables.forEach {
-//							maxContentWidth =
-//								max(maxContentWidth, it.maxIntrinsicWidth(Constraints.Infinity))
-//						}
 						val cellSlotId = "c_${colIndex}_${sampleRowIndex}"
 						val cellPlaceables = subcompose(cellSlotId) { column.cell(rowData) }
 						cellPlaceables.forEach { placeable ->
