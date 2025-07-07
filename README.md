@@ -8,7 +8,7 @@
 > Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
 
 
-# SeftConfig-Chatbot 
+# SelfConfig-Chatbot 
 It's a chat bot app that support multi AI providers, through your API key. Currently, I have pre-defined three providers: [Together AI](https://www.together.ai/), [Open Router](https://www.openrouter.ai), [Open AI](http://openai.com). 
 I also want to give a shout-out to [Rikka](https://rikka-ai.com/) — the author of the original code and you can download the fully version in his/her site. I was inspired by this source code to use and further develop it for this project. 
 
@@ -31,3 +31,8 @@ I also want to give a shout-out to [Rikka](https://rikka-ai.com/) — the author
 - [Coil](https://coil-kt.github.io/coil/compose): Multiplatform to load and display iamge.
 - [Calf](https://github.com/MohamedRejeb/Calf): Kotlin multiplatform library to pick image from gallery.
 - [Jetbrains Markdown](https://www.jetbrains.com/help/idea/markdown.html): to parse and convert markdown to displayable text
+
+# How to use: 
+**Prerequisite:** The API key of pre-define providers include: TogetherAI, Open Router, OpenAI. 
+**Open settings:** Select the `provider section`, enter your API key into field. Pick the a specific model from `Provider` and now, you start using app. 
+
