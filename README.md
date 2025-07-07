@@ -36,3 +36,10 @@ I also want to give a shout-out to [Rikka](https://rikka-ai.com/) — the author
 - **Prerequisite:** The API key of pre-define providers include: TogetherAI, Open Router, OpenAI. 
 - **Open settings:** Select the `provider section`, enter your API key into field. Pick the a specific model from `Provider` and now, you start using app. 
 
+# Milestones 
+- [x] Can work fully features in Android and iOS.
+- [x] Ask with remote image in Android and iOS, local image only in Android.
+- [x] Parse and display markdown into: Callout, table, bold, italic, underline...
+- [ ] Parse code block and latex are in progress.
+- [ ] The database on Desktop is in progress.
+- [ ] Streamming text, other tools is in progress. 
