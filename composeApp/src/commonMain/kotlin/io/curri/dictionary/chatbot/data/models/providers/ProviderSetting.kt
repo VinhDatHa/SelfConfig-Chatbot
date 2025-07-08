@@ -54,38 +54,6 @@ sealed class ProviderSetting {
 		}
 	}
 
-//	@Serializable
-//	@SerialName("google")
-//	data class GoogleProvider(
-//		override var id: String = "Google",
-//		override var enabled: Boolean = true,
-//		override var name: String = "Google",
-//		override var models: List<ModelFromProvider> = emptyList(),
-//		var apiKey: String = "",
-//		var baseUrl: String = "",
-//	) : ProviderSetting() {
-//		override fun addModel(model: ModelFromProvider): ProviderSetting {
-//			return copy(models = models + model)
-//		}
-//
-//		override fun editModel(model: ModelFromProvider): ProviderSetting {
-//			return copy(models = models.map { if (it.modelId == model.modelId) model else it })
-//		}
-//
-//		override fun delModel(model: ModelFromProvider): ProviderSetting {
-//			return copy(models = models.filter { it.modelId != model.modelId })
-//		}
-//
-//		override fun copyProvider(id: String, enabled: Boolean, name: String, models: List<ModelFromProvider>): ProviderSetting {
-//			return this.copy(
-//				id = id,
-//				enabled = enabled,
-//				name = name,
-//				models = models
-//			)
-//		}
-//	}
-
 	@Serializable
 	@SerialName("openai")
 	data class OpenAiProvider(
