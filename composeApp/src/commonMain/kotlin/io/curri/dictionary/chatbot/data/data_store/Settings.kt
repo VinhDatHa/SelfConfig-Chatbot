@@ -58,5 +58,6 @@ internal val DEFAULT_PROVIDERS = listOf(
 		name = "OpenAI",
 		baseUrl = "https://api.openai.com/v1",
 		apiKey = "sk-",
+		enabled = true
 	)
 )
