@@ -12,6 +12,8 @@
 It's a chat bot app that support multi AI providers, through your API key. Currently, I have pre-defined three providers: [Together AI](https://www.together.ai/), [Open Router](https://www.openrouter.ai), [Open AI](http://openai.com). 
 I also want to give a shout-out to [Rikka](https://rikka-ai.com/) — the author of the original code and you can download the fully version in his/her site. I was inspired by this source code to use and further develop it for this project. 
 
+![ScreenShot](previews/device-mockup_3x_postspark_2025-07-08_11-10-45.png)
+
 # Tech stack & Open-source libraries
 - [Kotlin multi-platform](https://kotlinlang.org/docs/multiplatform.html) based, [Coroutines](https://github.com/Kotlin/kotlinx.coroutines) + [Flow](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/) for asynchronous.
 - Jetpack
