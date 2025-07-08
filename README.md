@@ -1,4 +1,4 @@
->[Info] This is a project that a place where I have practiced and learnt Kotlin Multiplatform, it targets Android, iOS and Desktop.
+> This is a project that a place where I have practiced and learnt Compose Multiplatform. It targets Android, iOS and Desktop.
 > It still contains errors and bugs due to the lack of fully support in iOS and Desktop version.
 > It contains several subfolders:
 >  - `/commonMain` is for code that’s common for all targets.
